@@ -297,7 +297,7 @@
 </div>
 
 <footer>
-  © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 29.06.2026
+  © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 21.06.2026
 </footer>
 
 <script>
@@ -314,10 +314,8 @@
         '#Intent;scheme=https;package=com.linkedin.android;' +
         'S.browser_fallback_url=' + encodeURIComponent(webUrl) + ';end';
     } else if (/iPhone|iPad|iPod/i.test(ua)) {
-      // iOS: try the app scheme, fall back to the browser if it doesn't open
-      var fallback = setTimeout(function () { window.location.href = webUrl; }, 700);
-      window.addEventListener('pagehide', function () { clearTimeout(fallback); }, { once: true });
-      window.location.href = 'linkedin://profile/' + profile;
+      // iOS: universal links silently open the app if installed, Safari if not — no error alerts
+      window.location.href = webUrl;
     } else {
       // Desktop: open the web profile in a new tab
       window.open(webUrl, '_blank', 'noopener');
