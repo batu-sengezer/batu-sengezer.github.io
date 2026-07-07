@@ -2,6 +2,21 @@
   "sitemaps": [
     {
       "url": "https://batu-sengezer.github.io"
+    },
+    {
+      "url": "https://batu-sengezer.github.io/projects.html"
+    },
+    {
+      "url": "https://batu-sengezer.github.io/publications.html"
+    },
+    {
+      "url": "https://batu-sengezer.github.io/tier1.html"
+    },
+    {
+      "url": "https://batu-sengezer.github.io/tier2.html"
+    },
+    {
+      "url": "https://batu-sengezer.github.io/tier3.html"
     }
   ]
 }
