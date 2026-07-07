@@ -71,6 +71,10 @@
     }
     .placeholder-text { font-size: 1rem; color: var(--muted); }
 
+    .breadcrumb { font-size: 0.85rem; color: var(--muted); margin-bottom: 20px; }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
     .intro-text { font-size: 0.98rem; color: var(--text); margin-bottom: 14px; max-width: 62ch; }
     .intro-note {
       font-size: 0.92rem; color: var(--muted); margin-bottom: 40px;
@@ -148,6 +152,7 @@
 </nav>
 
 <div class="container">
+  <div class="breadcrumb"><a href="index.html">← Back to Home</a></div>
   <h1 class="page-title">Projects</h1>
 
   <p class="intro-text">
@@ -170,7 +175,7 @@
     <a class="project" href="tier1.html">
       <div class="project-top">
         <div class="project-title"><span class="tier-line">Compute Tier 1 -</span><span class="tier-line">Microcontroller</span></div>
-        <span class="badge progress">In progress</span>
+        <span class="badge progress">Completed</span>
       </div>
       <p class="project-desc">
         Deploying a quantized (INT8) neural network on an STM32F407 microcontroller running FreeRTOS,
@@ -207,7 +212,7 @@
 </div>
 
 <footer>
-  © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 06.07.2026
+  © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 07.07.2026
 </footer>
 
 <script>
