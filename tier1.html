@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compute Tier 1 — Batu Şengezer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --text: #212529; --muted: #6c757d; --border: #dee2e6; }
+    html { font-size: 16px; }
+    body { font-family: "Roboto", sans-serif; font-weight: 300; color: var(--text); background: #f8f9fa; line-height: 1.7; min-height: 100vh; }
+
+    .menu-btn {
+      position: fixed; top: 20px; right: 20px; z-index: 60;
+      width: 46px; height: 46px;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: box-shadow .2s;
+    }
+    .menu-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .menu-btn span { position: relative; width: 20px; height: 2px; background: var(--text); transition: background .2s; }
+    .menu-btn span::before, .menu-btn span::after {
+      content: ""; position: absolute; left: 0; width: 20px; height: 2px; background: var(--text); transition: transform .25s ease;
+    }
+    .menu-btn span::before { top: -6px; }
+    .menu-btn span::after  { top: 6px; }
+    .menu-open .menu-btn span { background: transparent; }
+    .menu-open .menu-btn span::before { transform: translateY(6px) rotate(45deg); }
+    .menu-open .menu-btn span::after  { transform: translateY(-6px) rotate(-45deg); }
+
+    .menu-overlay {
+      position: fixed; top: 76px; right: 20px; z-index: 55;
+      background: #fff; border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: flex; flex-direction: column; padding: 8px; min-width: 180px;
+      opacity: 0; visibility: hidden; transform: translateY(-8px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    }
+    .menu-open .menu-overlay { opacity: 1; visibility: visible; transform: translateY(0); }
+    .menu-overlay a {
+      font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1rem;
+      color: var(--text); text-decoration: none; padding: 10px 14px; border-radius: 6px;
+      transition: background .15s;
+    }
+    .menu-overlay a:hover { background: #f1f3f5; }
+
+    .container { max-width: 780px; margin: 0 auto; padding: 80px 24px; }
+    .breadcrumb { font-size: 0.85rem; color: var(--muted); margin-bottom: 20px; }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .page-title { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.7rem; margin-bottom: 16px; }
+    .placeholder-text { font-size: 1rem; color: var(--muted); }
+
+    footer {
+      border-top: 1px solid var(--border); background: #fff;
+      padding: 24px; text-align: center; font-size: 0.78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><span></span></button>
+<nav class="menu-overlay" id="menuOverlay" aria-label="Main menu">
+  <a href="index.html">Home</a>
+  <a href="projects.html">Projects</a>
+  <a href="publications.html">Publications</a>
+</nav>
+
+<div class="container">
+  <div class="breadcrumb"><a href="projects.html">← Back to Projects</a></div>
+  <h1 class="page-title">Compute Tier 1 — Microcontroller</h1>
+  <p class="placeholder-text">STM32F407 · FreeRTOS · INT8 quantized inference — write-up coming soon.</p>
+</div>
+
+<footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 06.07.2026</footer>
+
+<script>
+  (function () {
+    var btn = document.getElementById('menuBtn');
+    var body = document.body;
+    btn.addEventListener('click', function () {
+      var open = body.classList.toggle('menu-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && body.classList.contains('menu-open')) {
+        body.classList.remove('menu-open');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.setAttribute('aria-label', 'Open menu');
+      }
+    });
+  })();
+</script>
+</body>
+</html>
