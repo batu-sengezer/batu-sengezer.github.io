@@ -28,6 +28,80 @@
       line-height: 1.7;
     }
 
+    /* MENU BUTTON */
+    .menu-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 60;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: box-shadow .2s;
+    }
+    .menu-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .menu-btn span {
+      position: relative;
+      width: 20px;
+      height: 2px;
+      background: var(--text);
+      transition: background .2s;
+    }
+    .menu-btn span::before,
+    .menu-btn span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 20px;
+      height: 2px;
+      background: var(--text);
+      transition: transform .25s ease;
+    }
+    .menu-btn span::before { top: -6px; }
+    .menu-btn span::after  { top: 6px; }
+    /* X state when open */
+    .menu-open .menu-btn span { background: transparent; }
+    .menu-open .menu-btn span::before { transform: translateY(6px) rotate(45deg); }
+    .menu-open .menu-btn span::after  { transform: translateY(-6px) rotate(-45deg); }
+
+    /* MENU OVERLAY */
+    .menu-overlay {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 55;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      min-width: 180px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    }
+    .menu-open .menu-overlay { opacity: 1; visibility: visible; transform: translateY(0); }
+    .menu-overlay a {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+    .menu-overlay a:hover { background: #f1f3f5; }
+
     /* LAYOUT */
     .page {
       max-width: 1080px;
@@ -154,6 +228,18 @@
 </head>
 <body>
 
+<!-- MENU BUTTON -->
+<button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+  <span></span>
+</button>
+
+<!-- MENU OVERLAY -->
+<nav class="menu-overlay" id="menuOverlay" aria-label="Main menu">
+  <a href="index.html">Home</a>
+  <a href="projects.html">Projects</a>
+  <a href="publications.html">Publications</a>
+</nav>
+
 <div class="page">
 
   <!-- SIDEBAR -->
@@ -187,7 +273,13 @@
           LinkedIn
         </a>
 
-
+        <!-- YouTube -->
+        <a href="https://www.youtube.com/@batusengezer" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#FF0000">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+          YouTube
+        </a>
 
       </div>
 
@@ -297,10 +389,29 @@
 </div>
 
 <footer>
-  © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 30.06.2026
+  © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 07.07.2026
 </footer>
 
 <script>
+  // Menu toggle
+  (function () {
+    var btn = document.getElementById('menuBtn');
+    var body = document.body;
+    btn.addEventListener('click', function () {
+      var open = body.classList.toggle('menu-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    });
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && body.classList.contains('menu-open')) {
+        body.classList.remove('menu-open');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.setAttribute('aria-label', 'Open menu');
+      }
+    });
+  })();
+
   function openLinkedIn(e) {
     e.preventDefault();
     var profile = 'batu-sengezer';
