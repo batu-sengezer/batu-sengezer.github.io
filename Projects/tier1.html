@@ -1,238 +1,735 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Compute Tier 1 — Real-Time NN Inference on STM32F407 — Batu Şengezer</title>
-  <meta name="description" content="Deploying a quantized INT8 neural network on an STM32F407 microcontroller under FreeRTOS, with a measured worst-case execution time of 786.89 µs." />
+  <meta name="description"
+    content="Deploying a quantized INT8 neural network on an STM32F407 microcontroller under FreeRTOS, with a measured worst-case execution time of 786.89 µs." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --text: #212529; --muted: #6c757d; --border: #dee2e6; --accent: #0d6efd; }
-    html { font-size: 15px; scroll-behavior: smooth; }
-    body { font-family: "Roboto", sans-serif; font-weight: 300; color: var(--text); background: #f8f9fa; line-height: 1.75; min-height: 100vh; }
-
-    /* MENU */
-    .menu-btn {
-      position: fixed; top: 20px; right: 20px; z-index: 60;
-      width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
-      background: #fff; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow .2s;
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .menu-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .menu-btn span { position: relative; width: 20px; height: 2px; background: var(--text); transition: background .2s; }
-    .menu-btn span::before, .menu-btn span::after { content: ""; position: absolute; left: 0; width: 20px; height: 2px; background: var(--text); transition: transform .25s ease; }
-    .menu-btn span::before { top: -6px; }
-    .menu-btn span::after  { top: 6px; }
-    .menu-open .menu-btn span { background: transparent; }
-    .menu-open .menu-btn span::before { transform: translateY(6px) rotate(45deg); }
-    .menu-open .menu-btn span::after  { transform: translateY(-6px) rotate(-45deg); }
+
+    :root {
+      --text: #212529;
+      --muted: #6c757d;
+      --border: #dee2e6;
+      --accent: #0d6efd;
+    }
+
+    html {
+      font-size: 15px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Roboto", sans-serif;
+      font-weight: 300;
+      color: var(--text);
+      background: #f8f9fa;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    /* NAV BAR */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .navbar-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar-name {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .navbar-links {
+      display: none;
+    }
+
+    @media (min-width: 769px) {
+      .navbar-links {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 32px;
+        align-items: center;
+        margin-left: 48px;
+      }
+
+      .navbar-links a {
+        font-family: "Roboto", sans-serif;
+        font-weight: 400;
+        font-size: 0.92rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 8px 10px;
+        border-radius: 6px;
+        transition: background .15s, color .15s;
+      }
+
+      .navbar-links a:hover {
+        background: #f1f3f5;
+      }
+
+      .menu-btn {
+        display: none !important;
+      }
+    }
+
+    .menu-btn {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: box-shadow .2s;
+      flex-shrink: 0;
+    }
+
+    .menu-btn:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-btn span {
+      position: relative;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: background .2s;
+    }
+
+    .menu-btn span::before,
+    .menu-btn span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: transform .25s ease;
+    }
+
+    .menu-btn span::before {
+      top: -6px;
+    }
+
+    .menu-btn span::after {
+      top: 6px;
+    }
+
+    .menu-open .menu-btn span {
+      background: transparent;
+    }
+
+    .menu-open .menu-btn span::before {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-open .menu-btn span::after {
+      transform: translateY(-6px) rotate(-45deg);
+    }
 
     .menu-overlay {
-      position: fixed; top: 76px; right: 20px; z-index: 55;
-      background: #fff; border: 1px solid var(--border); border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      display: flex; flex-direction: column; padding: 8px; min-width: 180px;
-      opacity: 0; visibility: hidden; transform: translateY(-8px);
+      position: fixed;
+      top: 72px;
+      right: 20px;
+      z-index: 55;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      min-width: 180px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
       transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
     }
-    .menu-open .menu-overlay { opacity: 1; visibility: visible; transform: translateY(0); }
-    .menu-overlay a { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1rem; color: var(--text); text-decoration: none; padding: 10px 14px; border-radius: 6px; transition: background .15s; }
-    .menu-overlay a:hover { background: #f1f3f5; }
+
+    .menu-open .menu-overlay {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .menu-overlay a {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+
+    .menu-overlay a:hover {
+      background: #f1f3f5;
+    }
 
     /* ARTICLE */
-    .article { max-width: 760px; margin: 0 auto; padding: 80px 24px; }
-    .breadcrumb { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
-    .breadcrumb a { color: var(--muted); text-decoration: none; }
-    .breadcrumb a:hover { text-decoration: underline; }
+    .article {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
 
-    .eyebrow { font-family: "JetBrains Mono", monospace; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; text-align: center; }
-    .eyebrow-rule { border: none; border-top: 1px solid var(--border); margin: 0 0 18px; }
-    .article h1 { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.75rem; line-height: 1.28; letter-spacing: -0.01em; margin-bottom: 12px; }
-    .lede { font-size: 0.98rem; font-style: italic; color: var(--muted); margin-bottom: 28px; }
+    .breadcrumb {
+      font-size: 13.6px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
 
-    .article h2 { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.18rem; margin: 40px 0 14px; padding-top: 8px; }
-    .article p { margin-bottom: 16px; text-align: justify; }
-    .article a { color: var(--accent); text-decoration: none; }
-    .article a:hover { text-decoration: underline; }
-    .article strong { font-weight: 500; color: var(--text); }
-    .article em { font-style: italic; }
+    .article .breadcrumb a {
+      color: var(--muted);
+      text-decoration: none;
+    }
 
-    hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .article .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    .page-title {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .article h1 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.75rem;
+      line-height: 1.28;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+
+    .lede {
+      font-size: 0.98rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    .article h2 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.18rem;
+      margin: 20px 0 14px;
+      padding-top: 8px;
+    }
+
+    .article p {
+      margin-bottom: 16px;
+      text-align: justify;
+    }
+
+    .article a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .article a:hover {
+      text-decoration: underline;
+    }
+
+    .article strong {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .article em {
+      font-style: italic;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
 
     /* highlight callout */
     .headline-result {
-      background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--text);
-      border-radius: 6px; padding: 20px 24px; margin: 24px 0; font-size: 1rem;
+      background: #f0f7ff;
+      border: 1px solid #cce3fd;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #084298;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
     }
-    .headline-result strong { color: var(--text); font-weight: 500; }
+
+    .headline-result-title {
+      font-family: "Roboto Slab", serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #052c65;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .headline-result strong {
+      color: #052c65;
+      font-weight: 600;
+    }
 
     /* video */
-    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; margin: 8px 0 8px; border-radius: 10px; overflow: hidden; background: #000; box-shadow: 0 8px 30px -12px rgba(0,0,0,0.4); }
-    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      height: 0;
+      margin: 8px 0 8px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
 
     /* tables */
-    .table-wrap { overflow-x: auto; margin: 18px 0 22px; }
-    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--border); border-radius: 6px; font-size: 0.92rem; }
-    th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { font-weight: 500; font-family: "Roboto Slab", serif; background: #f1f3f5; }
-    tr:last-child td { border-bottom: none; }
-    td.num, th.num { font-family: "JetBrains Mono", monospace; }
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0 22px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      padding: 11px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 500;
+      font-family: "Roboto Slab", serif;
+      background: #f1f3f5;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td.num,
+    th.num {
+      font-family: "JetBrains Mono", monospace;
+    }
 
     /* bullet lists */
-    .article ul { margin: 0 0 18px 0; padding-left: 0; list-style: none; }
-    .article ul li { position: relative; padding-left: 22px; margin-bottom: 10px; }
-    .article ul li::before { content: ""; position: absolute; left: 4px; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--text); }
+    .article ul {
+      margin: 0 0 18px 0;
+      padding-left: 0;
+      list-style: none;
+    }
 
-    .repo-cta { display: inline-flex; align-items: center; gap: 9px; background: #181717; color: #fff; font-size: 0.9rem; padding: 11px 20px; border-radius: 7px; text-decoration: none; margin-top: 8px; transition: opacity .18s; }
-    .repo-cta:hover { opacity: 0.88; text-decoration: none; }
-    .repo-cta svg { width: 18px; height: 18px; fill: #fff; }
+    .article ul li {
+      position: relative;
+      padding-left: 22px;
+      margin-bottom: 10px;
+    }
 
-    .closing { font-style: italic; color: var(--muted); text-align: center; margin-top: 8px; }
+    .article ul li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 11px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text);
+    }
 
-    footer { border-top: 1px solid var(--border); background: #fff; padding: 24px; text-align: center; font-size: 0.78rem; color: var(--muted); }
+    .article a.repo-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: #181717;
+      color: #fff !important;
+      font-size: 0.9rem;
+      padding: 11px 20px;
+      border-radius: 7px;
+      text-decoration: none;
+      margin-top: 8px;
+      transition: opacity .18s;
+    }
 
-    @media (max-width: 600px) { .article h1 { font-size: 1.6rem; } }
+    .article a.repo-cta:hover {
+      opacity: 0.88;
+      text-decoration: none;
+    }
+
+    .article a.repo-cta svg {
+      width: 18px;
+      height: 18px;
+      fill: #fff;
+    }
+
+    .closing {
+      font-style: italic;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      background: #fff;
+      padding: 24px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 600px) {
+      .article h1 {
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .navbar-inner {
+        padding: 0 16px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
-<button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><span></span></button>
-<nav class="menu-overlay" id="menuOverlay" aria-label="Main menu">
-  <a href="../index.html">Home</a>
-  <a href="index.html">Projects</a>
-  <a href="../publications.html">Publications</a>
-</nav>
+  <!-- NAV BAR -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a class="navbar-name" href="../index.html">Batu Şengezer</a>
 
-<article class="article">
+      <!-- Desktop inline links -->
+      <nav class="navbar-links" aria-label="Main menu">
+        <a href="../index.html">Home</a>
+        <a href="../publications/index.html">Publications</a>
+        <a href="index.html">Projects</a>
+      </nav>
 
-  <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+      </button>
+    </div>
+  </header>
 
-  <div class="eyebrow">COMPUTE TIER 1 - MICROCONTROLLER</div>
-  <hr class="eyebrow-rule" />
-  <h1>Real-Time Neural Network Inference on STM32F407 under FreeRTOS</h1>
-  <p class="lede">Deploying a quantized INT8 classifier on a Cortex-M4 microcontroller — and measuring exactly how long it takes.</p>
+  <!-- MENU OVERLAY (mobile) -->
+  <nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
+    <a href="../index.html">Home</a>
+    <a href="../publications/index.html">Publications</a>
+    <a href="index.html">Projects</a>
+  </nav>
 
-  <hr class="divider" />
+  <article class="article">
 
-  <p>Most machine learning runs on powerful hardware: GPUs, servers, the cloud. But an increasing amount of it needs to run on the opposite end of the spectrum — tiny embedded devices with kilobytes of memory and hard real-time constraints. Sensors, wearables, industrial controllers, avionics. On these systems, it isn't enough for a model to be accurate. It has to run <em>predictably</em> — completing within a guaranteed time window, every single time, even while other tasks compete for the processor.</p>
+    <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
 
-  <p>This project is my exploration of exactly that problem. I trained a neural network on my laptop, compressed it to fit on a microcontroller, deployed it under a real-time operating system with competing tasks, and then measured — down to individual clock cycles — how long each inference actually takes on real hardware.</p>
+    <div class="page-title">Compute Tier 1 - Microcontroller</div>
+    <hr class="divider" />
+    <h1>Real-Time Neural Network Inference on STM32F407 under FreeRTOS</h1>
+    <p class="lede">Deploying a quantized INT8 classifier on a Cortex-M4 microcontroller and measuring exactly how long
+      it takes.</p>
 
-  <div class="headline-result">
-    The headline result: <strong>worst-case execution time of 786.89 microseconds across 1,000 runs under scheduler competition, on an STM32F407 running at 168 MHz.</strong>
-  </div>
+    <hr class="divider" />
 
-  <p>The full video walkthrough is below, followed by a written summary. The complete source is on <a href="https://github.com/batu-sengezer/stm32f407-realtime-ai" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p style="background: #f1f3f5; padding: 16px 20px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 24px;">
+      <em>This page details <strong>Tier 1</strong> of a larger project named "ML Compute Spectrum Project" where I
+        deploy and measure the same machine-learning workload across the full hardware compute spectrum, from a
+        Microcontroller, to an Embedded GPU, to a General-Purpose PC. Alongside this Tier 1 (MCU) implementation,
+        the "ML Compute Spectrum Project" also includes Tier 2 (Embedded GPU) and Tier 3 (General-Purpose
+        Computer/MacBook).</em>
+    </p>
 
-  <hr class="divider" />
+    <p>Most machine learning runs on powerful hardware: GPUs, servers, the cloud. But an increasing amount of it
+      needs to run on the opposite end of the spectrum which are tiny embedded devices with kilobytes of memory and hard
+      real-time constraints. Sensors, wearables, industrial controllers, avionics. On these systems, it isn't enough for
+      a model to be accurate. It has to run <em>predictably</em>, completing within a guaranteed time window, every
+      single time, even while other tasks compete for the processor.</p>
 
-  <h2>Video Walkthrough</h2>
-  <div class="video-container">
-    <iframe src="https://www.youtube.com/embed/RhqpqczK2AM" title="Real-Time Neural Network Inference on STM32F407 under FreeRTOS" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-  </div>
+    <p>This project is my exploration of exactly this problem. I trained a neural network on my laptop, compressed it to
+      fit on a microcontroller, deployed it under a real-time operating system with competing tasks, and then measured
+      down to individual clock cycles how long each inference actually takes on real hardware.</p>
 
-  <hr class="divider" />
+    <div class="headline-result">
+      <div class="headline-result-title">The Result</div>
+      <strong>Worst-Case Execution Time (WCET) of 786.89 microseconds across 1,000 runs under scheduler
+        competition, on an STM32F407 running at 168 MHz. This established tight bound demonstrates deterministic
+        inference
+        behavior within the system.
+      </strong>
+    </div>
 
-  <h2>The Hardware</h2>
-  <p>The target is an <strong>STM32F407VGT6</strong> — an ARM Cortex-M4F processor running at 168 MHz, with 1 MB of flash and 192 KB of SRAM. It has a hardware floating-point unit and DSP extensions with SIMD instructions that the INT8 inference kernels exploit for packed multiply-accumulate operations.</p>
-  <p>Notably, this chip has <strong>no data cache</strong>. That sounds like a limitation, but it turned out to be one of the most important properties for this project: every memory access hits SRAM in a fixed, predictable number of cycles. No cache misses, no variability. As we'll see, this is a large part of why the timing came out so deterministic.</p>
+    <p>The full video walkthrough is below, followed by a written summary. The complete project is available on my <a
+        href="https://github.com/batu-sengezer/stm32f407-realtime-ai" target="_blank" rel="noopener">GitHub</a>.</p>
 
-  <h2>The Model</h2>
-  <p>The classifier targets the <strong>UCI Human Activity Recognition dataset</strong> — accelerometer and gyroscope data from 30 people performing 6 activities (walking, walking upstairs, walking downstairs, sitting, standing, laying). Each 2.56-second window of motion is pre-processed into 561 features, and the network classifies which activity it represents.</p>
-  <p>The architecture is deliberately small — a three-layer fully-connected network (561 → 64 → 32 → 6) with ReLU activations and a softmax output, built in TensorFlow/Keras. About 38,000 parameters. Trained with a fixed random seed for full reproducibility, it reaches <strong>95.15% test accuracy</strong> in under 15 seconds on a laptop.</p>
+    <hr class="divider" />
 
-  <h2>Quantization</h2>
-  <p>A 32-bit float model is too large and too slow for a microcontroller. So I applied <strong>post-training INT8 quantization</strong> using TensorFlow Lite — converting every weight from a 32-bit float to an 8-bit integer. The critical step is calibration: feeding 100 real training samples through the model so the converter can measure each layer's value range and choose optimal scale factors.</p>
-  <p>The results:</p>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th></th><th class="num">FP32</th><th class="num">INT8</th></tr></thead>
-      <tbody>
-        <tr><td>Accuracy</td><td class="num">95.15%</td><td class="num">94.98%</td></tr>
-        <tr><td>Model size</td><td class="num">479.0 KB</td><td class="num">42.5 KB</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p><strong>11.3× smaller, with only 0.17% accuracy loss.</strong> That 42.5 KB file is what goes onto the chip.</p>
+    <h2>Video Walkthrough</h2>
+    <div class="video-container">
+      <iframe src="https://www.youtube.com/embed/RhqpqczK2AM"
+        title="Real-Time Neural Network Inference on STM32F407 under FreeRTOS"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+    </div>
 
-  <h2>On-Chip Footprint</h2>
-  <p>Using <strong>ST's X-CUBE-AI</strong> tool, the quantized model is converted to optimized C code and analyzed for exact resource usage before any application code is written:</p>
-  <ul>
-    <li><strong>Flash:</strong> 51.27 KB — just <strong>5%</strong> of the available 1 MB</li>
-    <li><strong>RAM:</strong> 4.24 KB — just <strong>2.2%</strong> of the available 192 KB</li>
-    <li><strong>38,336 multiply-accumulate operations</strong> per inference, 94% concentrated in the first layer</li>
-  </ul>
-  <p>Desktop validation confirmed 100% agreement between the generated C model and the original TFLite model, with a cosine similarity of 0.999998 — the code generation introduced no meaningful numerical error.</p>
+    <hr class="divider" />
 
-  <h2>The Real-Time Architecture</h2>
-  <p>This is the heart of the project. Rather than running inference in a simple loop, I built <strong>three FreeRTOS tasks at distinct priorities</strong> to create realistic scheduler competition:</p>
-  <ul>
-    <li><strong>SensorTask</strong> (AboveNormal priority) — every 100 ms, loads a real test sample into the model's input buffer and signals the inference task via a binary semaphore. It cycles through 12 samples covering all 6 activity classes. Because it's the highest-priority task, it preempts everything else when it fires.</li>
-    <li><strong>InferenceTask</strong> (Normal priority) — waits for the signal, then runs one inference. It reads a hardware cycle counter immediately before and after, then posts the elapsed cycle count to a message queue.</li>
-    <li><strong>LogTask</strong> (BelowNormal priority) — collects cycle counts and accumulates running statistics across 1,000 runs.</li>
-  </ul>
-  <p>One subtle detail: getting data into the model's input buffer was trickier than expected. The buffer pointer gets reassigned internally when the AI runtime initializes, so I wrote a small helper function that writes directly into the correct buffer after initialization — the kind of detail that either works or silently breaks everything.</p>
+    <h2>The Hardware</h2>
+    <p>The target is an <strong>STM32F407VGT6</strong> microcontroller which has an <strong>ARM Cortex-M4F</strong>
+      processor running at
+      <strong>168 MHz </strong>, with <strong>1 MB of
+        flash</strong> and <strong>192 KB of SRAM</strong>. It has a hardware floating-point unit and DSP extensions
+      with
+      SIMD instructions that the
+      INT8 inference kernels exploit for packed multiply-accumulate operations.
+    </p>
+    <p>Notably, this chip has <strong>no data cache</strong>. That sounds like a limitation, but it turned out to be one
+      of the most important properties for this project: every memory access hits SRAM in a fixed, predictable number of
+      cycles. No cache misses, no warm-up, no variability. As we'll see, this is a large part of why the timing came out
+      so deterministic.</p>
 
-  <h2>Measuring the Timing</h2>
-  <p>The measurement uses the <strong>Data Watchpoint and Trace (DWT) cycle counter</strong> built into the Cortex-M4 — a hardware counter that ticks once every processor clock cycle. At 168 MHz, that's one tick every 5.95 nanoseconds, roughly 167× finer than the operating system's millisecond tick timer, which couldn't measure a sub-millisecond event at all.</p>
-  <p>The measurement window is clean by design: the counter is read immediately before and after the inference call, and the higher-priority sensor task can only preempt <em>between</em> inferences, never during one. So what's measured is pure inference computation time, with no scheduling overhead mixed in.</p>
+    <h2>The Model</h2>
+    <p>The neural network model is trained on the <strong>UCI Human Activity Recognition dataset</strong> which contains
+      accelerometer and gyroscope
+      data from 30 people with smartphones on their waist performing 6 activities (walking, walking upstairs, walking
+      downstairs, sitting, standing,
+      laying). Each 2.56-second window of motion is pre-processed into 561 features, and the network classifies which
+      activity it represents.</p>
+    <p>The architecture is deliberately small, a three-layer fully-connected sequential network (561 → 64 → 32 → 6) with
+      ReLU activations and a softmax output, built in TensorFlow/Keras. About 38,000 parameters. Trained with a fixed
+      random
+      seed for full reproducibility, it reaches <strong>95.15% test accuracy</strong> in under 15 seconds on a laptop.
+    </p>
 
-  <h2>The Results</h2>
-  <p>Across 1,000 inferences on real activity data, under active scheduler competition:</p>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Metric</th><th class="num">Value</th></tr></thead>
-      <tbody>
-        <tr><td>Mean latency</td><td class="num">786.73 µs</td></tr>
-        <tr><td>Minimum</td><td class="num">786.58 µs</td></tr>
-        <tr><td><strong>Worst-case (WCET)</strong></td><td class="num"><strong>786.89 µs</strong></td></tr>
-        <tr><td>Standard deviation</td><td class="num">2.24 µs</td></tr>
-        <tr><td>CPU utilisation (100 ms period)</td><td class="num">0.79%</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p>The entire spread across 1,000 runs is <strong>0.31 microseconds</strong> — about 52 clock cycles. That tiny variation isn't random noise; it comes from different activity classes producing slightly different data patterns, which take marginally different paths through the 8-bit integer arithmetic.</p>
-  <p>Why is the variation this small? Three architectural reasons working together: no data cache means fixed-latency memory access with no cache misses; all buffers are statically allocated, so there's no dynamic memory allocation during inference; and the measurement window can't be interrupted. Together, these produce timing that is deterministic enough for <strong>formal schedulability analysis</strong>. At 0.79% CPU utilisation, this task passes Rate Monotonic Analysis with enormous margin to spare.</p>
+    <h2>Quantization</h2>
+    <p>A 32-bit float model is too large and too slow for a microcontroller. So I applied <strong>post-training INT8
+        quantization</strong> using TensorFlow Lite which converts every weight from a 32-bit float to an 8-bit integer.
+      The critical step is calibration: feeding 100 real training samples through the model so the converter can measure
+      each layer's value range and choose optimal scale factors.</p>
+    <p>The results:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th class="num">FP32</th>
+            <th class="num">INT8</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Accuracy</td>
+            <td class="num">95.15%</td>
+            <td class="num">94.98%</td>
+          </tr>
+          <tr>
+            <td>Model size</td>
+            <td class="num">479.0 KB</td>
+            <td class="num">42.5 KB</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>11.3× smaller, with only 0.17% accuracy loss.</strong> That 42.5 KB file is what goes onto the chip.</p>
+    <figure style="text-align:center; margin: 32px 0;">
+      <img src="accuracy_size_chart.png" alt="FP32 vs INT8 Accuracy and Size Comparison"
+        style="max-width: 80%; height: auto; border-radius: 8px;">
+    </figure>
 
-  <h2>What's Next</h2>
-  <p>The immediate next step is deploying this same model on a <strong>Jetson Orin Nano</strong> — moving from a microcontroller to an embedded GPU platform, to compare how identical inference behaves on very different hardware. Further out, I'm interested in exploring an <strong>FPGA implementation using high-level synthesis</strong> — mapping these same operations onto reconfigurable hardware to investigate parallelism and hardware-software co-design.</p>
+    <div style="padding-left: 15px;">
+      <h2>On-Chip Footprint</h2>
+      <p>Using <strong>ST's X-CUBE-AI</strong> tool, the quantized model is converted to optimized C code and analyzed
+        for exact resource usage before any application code is written:</p>
+      <ul>
+        <li><strong>Flash:</strong> 51.27 KB — just <strong>5%</strong> of the available 1 MB</li>
+        <li><strong>RAM:</strong> 4.24 KB — just <strong>2.2%</strong> of the available 192 KB</li>
+        <li><strong>38,336 multiply-accumulate operations (MACCs)</strong> per inference, 94% concentrated in the first
+          layer
+        </li>
+      </ul>
+      <p>Desktop validation confirmed 100% agreement between the generated C model and the original TFLite model, with a
+        cosine similarity of 0.999998. So, the code generation introduced no meaningful numerical error.</p>
 
-  <hr class="divider" />
+      <h2>The Real-Time Architecture</h2>
+      <p>This is the heart of the project. Rather than running inference in a simple loop, I built <strong>three
+          FreeRTOS tasks at distinct priorities</strong> to create realistic scheduler competition:</p>
+      <ul>
+        <li><strong>SensorTask</strong> (AboveNormal priority): every 100 ms, loads a real test sample into the model's
+          input buffer and signals the inference task via a binary semaphore. It cycles through 12 samples covering all
+          6 activity classes. Because it's the highest-priority task, it preempts everything else when it fires.</li>
+        <li><strong>InferenceTask</strong> (Normal priority): waits for the signal, then runs one inference. It reads a
+          hardware cycle counter immediately before and after, then posts the elapsed cycle count to a message queue.
+        </li>
+        <li><strong>LogTask</strong> (BelowNormal priority): collects cycle counts and accumulates running statistics
+          across 1,000 runs.</li>
+      </ul>
 
-  <p style="text-align:center;">The complete project — training and quantization scripts, test sample generation, the full embedded C project, timing results, and detailed documentation — is available on GitHub.</p>
+      <h2>Measuring the Timing</h2>
+      <p>The measurement uses the <strong>Data Watchpoint and Trace (DWT) cycle counter</strong> built into the
+        ARM Cortex-M4 which is a hardware counter that ticks once every processor clock cycle. At 168
+        MHz, that's one tick every
+        5.95 nanoseconds, roughly 167× finer than the operating system's millisecond tick timer, which couldn't measure
+        a sub-millisecond event at all.
+      </p>
+      <p>The measurement window is clean by design: the counter is read immediately before and after the inference call,
+        and the higher-priority sensor task can only preempt <em>between</em> inferences, never during one. So what's
+        measured is pure inference computation time, with no scheduling overhead mixed in.</p>
 
-  <div style="text-align:center;">
-    <a class="repo-cta" href="https://github.com/batu-sengezer/stm32f407-realtime-ai" target="_blank" rel="noopener">
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-    View on GitHub
-  </a>
-  </div>
+      <h2>The Results</h2>
+      <p>Across 1,000 inferences on real activity data, under active scheduler competition:</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th class="num">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mean latency</td>
+              <td class="num">786.73 µs</td>
+            </tr>
+            <tr>
+              <td>Minimum</td>
+              <td class="num">786.58 µs</td>
+            </tr>
+            <tr>
+              <td><strong>Worst-case (WCET)</strong></td>
+              <td class="num"><strong>786.89 µs</strong></td>
+            </tr>
+            <tr>
+              <td>Standard deviation</td>
+              <td class="num">2.24 µs</td>
+            </tr>
+            <tr>
+              <td>CPU utilisation (100 ms period)</td>
+              <td class="num">0.79%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <figure style="text-align:center; margin: 32px 0;">
+        <img src="latency_histogram.png" alt="Inference Latency Histogram across 1,000 Runs"
+          style="max-width: 80%; height: auto; border-radius: 8px;">
+      </figure>
+      <p>The entire spread across 1,000 runs is <strong>0.31 microseconds</strong> which is about 52 clock cycles. That
+        tiny
+        variation isn't random noise, it comes from different activity classes producing slightly different data
+        patterns, which take marginally different paths through the 8-bit integer arithmetic.</p>
+      <p>Why is the variation this small? Three architectural reasons working together: no data cache means
+        fixed-latency memory access with no cache misses; all buffers are statically allocated, so there's no dynamic
+        memory allocation during inference; and the measurement window can't be interrupted. Together, these produce
+        timing that is deterministic enough for <strong>formal schedulability analysis</strong>. At 0.79% CPU
+        utilisation, this task passes Rate Monotonic Analysis with enormous margin to spare.</p>
 
-  <p class="closing">786 microseconds. Deterministic, reproducible, and open source.</p>
+      <h2>What's Next</h2>
+      <p>The immediate next step is deploying this same model on a <strong>Jetson Orin Nano</strong>, moving from a
+        microcontroller to an embedded GPU platform to explore the effect of parallelism across cores, to compare how
+        identical inference behaves on very different
+        hardware. Further out, I'm interested in exploring an <strong>FPGA implementation using high-level
+          synthesis</strong>, mapping these same operations onto reconfigurable hardware to investigate parallelism and
+        hardware-software co-design.</p>
 
-</article>
+      <hr class="divider" />
 
-<footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 06.07.2026</footer>
+      <p style="text-align:center;">The complete project including the training and quantization scripts, test sample
+        generation, full embedded C project, timing results, and detailed documentation are available on GitHub.</p>
 
-<script>
-  (function () {
-    var btn = document.getElementById('menuBtn');
-    var body = document.body;
-    btn.addEventListener('click', function () {
-      var open = body.classList.toggle('menu-open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && body.classList.contains('menu-open')) {
-        body.classList.remove('menu-open');
-        btn.setAttribute('aria-expanded', 'false');
-        btn.setAttribute('aria-label', 'Open menu');
-      }
-    });
-  })();
-</script>
+      <div style="text-align:center;">
+        <a class="repo-cta" href="https://github.com/batu-sengezer/stm32f407-realtime-ai" target="_blank"
+          rel="noopener">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+          </svg>
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 08.07.2026</footer>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('menuBtn');
+      var body = document.body;
+      btn.addEventListener('click', function () {
+        var open = body.classList.toggle('menu-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && body.classList.contains('menu-open')) {
+          body.classList.remove('menu-open');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Open menu');
+        }
+      });
+    })();
+  </script>
 </body>
+
 </html>
