@@ -210,23 +210,27 @@
 
     /* HERO */
     .hero {
-      padding: 56px 0 48px;
+      padding: 36px 0 48px;
       display: grid;
       grid-template-columns: auto 1fr;
       gap: 40px;
       align-items: stretch;
+      max-width: 918px;
+      margin: 0 auto;
     }
 
     .hero-photo {
       width: 100%;
-      max-width: 220px;
-      max-height: 280px;
+      max-width: 230px;
+      height: 100%;
+      min-height: 0;
       border-radius: 12px;
       overflow: hidden;
       background: #dee2e6;
       flex-shrink: 0;
       border: 3px solid #fff;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      display: flex;
     }
 
     .hero-photo img {
@@ -261,7 +265,7 @@
       font-size: 1.08rem;
       line-height: 1.6;
       color: var(--text);
-      max-width: 70ch;
+      text-align: justify;
       margin-bottom: 22px;
     }
 
@@ -455,17 +459,16 @@
     <!-- HERO -->
     <header class="hero">
       <div class="hero-photo"><img src="photo.jpg" alt="Batu Şengezer" /></div>
-      <div>
+      <div style="transform: translateY(-5px);">
         <h1 class="hero-name">Batu Şengezer</h1>
         <div class="hero-position">
-          Researcher in Embedded Systems and Edge AI.<br>
-          <strong>Embedded Software Engineer at ASELSAN.</strong>
+          <div style="margin-bottom: 5px;"><strong>Researcher in Embedded Systems and Edge AI.</strong></div>
+          <div><strong>Embedded Software Engineer at ASELSAN.</strong></div>
         </div>
         <p class="hero-statement">
-          I build real-time mission-critical embedded systems with C/C++, and I focus on
-          efficiently deploying machine learning on resource-constrained embedded hardware,
-          bridging real-time systems engineering and edge AI. I am pursuing graduate research
-          in this area.
+          I build real-time mission-critical embedded systems with C/C++ and focus on the efficient deployment
+          and optimization of machine learning on resource-constrained embedded hardware, bridging real-time
+          systems engineering and Edge AI. Pursuing graduate research in this area.
         </p>
         <div class="hero-actions">
           <span class="hero-loc">

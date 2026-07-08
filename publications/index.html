@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Publications — Batu Şengezer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&display=swap"
+    rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
       --text: #212529;
@@ -16,7 +25,9 @@
       --border: #dee2e6;
     }
 
-    html { font-size: 16px; }
+    html {
+      font-size: 16px;
+    }
 
     body {
       font-family: "Roboto", sans-serif;
@@ -30,37 +41,184 @@
     }
 
     /* NAV BAR */
-    .navbar { position: sticky; top: 0; z-index: 60; background: #fff; border-bottom: 1px solid var(--border); }
-    .navbar-inner { max-width: 1140px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .navbar-name { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.2rem; letter-spacing: 0.01em; color: var(--text); text-decoration: none; flex-shrink: 0; }
-    .navbar-links { display: none; }
-    @media (min-width: 769px) {
-      .navbar-links { display: flex; flex: 1; justify-content: flex-end; gap: 32px; align-items: center; margin-left: 48px; }
-      .navbar-links a { font-family: "Roboto", sans-serif; font-weight: 400; font-size: 0.92rem; color: var(--text); text-decoration: none; padding: 8px 10px; border-radius: 6px; transition: background .15s, color .15s; }
-      .navbar-links a:hover { background: #f1f3f5; }
-      .menu-btn { display: none !important; }
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
     }
-    .menu-btn { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow .2s; flex-shrink: 0; }
-    .menu-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .menu-btn span { position: relative; width: 18px; height: 2px; background: var(--text); transition: background .2s; }
-    .menu-btn span::before, .menu-btn span::after { content: ""; position: absolute; left: 0; width: 18px; height: 2px; background: var(--text); transition: transform .25s ease; }
-    .menu-btn span::before { top: -6px; }
-    .menu-btn span::after  { top: 6px; }
-    .menu-open .menu-btn span { background: transparent; }
-    .menu-open .menu-btn span::before { transform: translateY(6px) rotate(45deg); }
-    .menu-open .menu-btn span::after  { transform: translateY(-6px) rotate(-45deg); }
-    .menu-overlay { position: fixed; top: 72px; right: 20px; z-index: 55; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; padding: 8px; min-width: 180px; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: opacity .18s ease, transform .18s ease, visibility .18s ease; }
-    .menu-open .menu-overlay { opacity: 1; visibility: visible; transform: translateY(0); }
-    .menu-overlay a { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1rem; color: var(--text); text-decoration: none; padding: 10px 14px; border-radius: 6px; transition: background .15s; }
-    .menu-overlay a:hover { background: #f1f3f5; }
+
+    .navbar-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar-name {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .navbar-links {
+      display: none;
+    }
+
+    @media (min-width: 769px) {
+      .navbar-links {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 32px;
+        align-items: center;
+        margin-left: 48px;
+      }
+
+      .navbar-links a {
+        font-family: "Roboto", sans-serif;
+        font-weight: 400;
+        font-size: 0.92rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 8px 10px;
+        border-radius: 6px;
+        transition: background .15s, color .15s;
+      }
+
+      .navbar-links a:hover {
+        background: #f1f3f5;
+      }
+
+      .menu-btn {
+        display: none !important;
+      }
+    }
+
+    .menu-btn {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: box-shadow .2s;
+      flex-shrink: 0;
+    }
+
+    .menu-btn:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-btn span {
+      position: relative;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: background .2s;
+    }
+
+    .menu-btn span::before,
+    .menu-btn span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: transform .25s ease;
+    }
+
+    .menu-btn span::before {
+      top: -6px;
+    }
+
+    .menu-btn span::after {
+      top: 6px;
+    }
+
+    .menu-open .menu-btn span {
+      background: transparent;
+    }
+
+    .menu-open .menu-btn span::before {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-open .menu-btn span::after {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .menu-overlay {
+      position: fixed;
+      top: 72px;
+      right: 20px;
+      z-index: 55;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      min-width: 180px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    }
+
+    .menu-open .menu-overlay {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .menu-overlay a {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+
+    .menu-overlay a:hover {
+      background: #f1f3f5;
+    }
 
     /* CONTENT */
-    .container { max-width: 1140px; margin: 0 auto; padding: 56px 24px 80px; }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+    }
+
     .page-title {
-      font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.8rem;
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.8rem;
       margin-bottom: 40px;
     }
-    .placeholder-text { font-size: 1rem; color: var(--muted); }
+
+    .placeholder-text {
+      font-size: 1rem;
+      color: var(--muted);
+    }
 
     .pub {
       background: #fff;
@@ -68,98 +226,137 @@
       border-radius: 6px;
       padding: 24px 26px;
     }
+
     .pub-top {
-      display: flex; justify-content: space-between; align-items: baseline;
-      flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
     }
+
     .pub-title {
-      font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.05rem; line-height: 1.4;
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.05rem;
+      line-height: 1.4;
     }
+
     .badge {
-      font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
-      padding: 3px 10px; border-radius: 20px; white-space: nowrap;
-      background: #eef1f4; color: #5a6570; border: 1px solid #d5dbe1;
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      background: #eef1f4;
+      color: #5a6570;
+      border: 1px solid #d5dbe1;
     }
-    .badge.completed { background: #d4edda; color: #155724; }
-    .badge.progress { background: #fff3cd; color: #856404; }
-    .pub-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.65; }
+
+    .badge.completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .badge.progress {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .pub-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
 
     footer {
       margin-top: auto;
-      border-top: 1px solid var(--border); background: #fff;
-      padding: 24px; text-align: center; font-size: 12.5px; color: var(--muted);
+      border-top: 1px solid var(--border);
+      background: #fff;
+      padding: 24px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--muted);
     }
+
     @media (max-width: 720px) {
-      .navbar-inner { padding: 0 16px; }
+      .navbar-inner {
+        padding: 0 16px;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<!-- NAV BAR -->
-<header class="navbar">
-  <div class="navbar-inner">
-    <a class="navbar-name" href="../index.html">Batu Şengezer</a>
+  <!-- NAV BAR -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a class="navbar-name" href="../index.html">Batu Şengezer</a>
 
-    <!-- Desktop inline links -->
-    <nav class="navbar-links" aria-label="Main menu">
-      <a href="../index.html">Home</a>
-      <a href="index.html" class="active">Publications</a>
-      <a href="../projects/index.html">Projects</a>
-    </nav>
+      <!-- Desktop inline links -->
+      <nav class="navbar-links" aria-label="Main menu">
+        <a href="../index.html">Home</a>
+        <a href="index.html" class="active">Publications</a>
+        <a href="../projects/index.html">Projects</a>
+      </nav>
 
-    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
-      <span></span>
-    </button>
-  </div>
-</header>
-
-<!-- MENU OVERLAY (mobile) -->
-<nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
-  <a href="../index.html">Home</a>
-  <a href="index.html" class="active">Publications</a>
-  <a href="../projects/index.html">Projects</a>
-</nav>
-
-<div class="container">
-  <h1 class="page-title">Publications</h1>
-
-  <div class="pub">
-    <div class="pub-top">
-      <div class="pub-title">Decentralized Learning for Coordination in Energy-Constrained Autonomous Agent Swarms</div>
-      <span class="badge progress">In progress</span>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+      </button>
     </div>
-    <p class="pub-desc">
-      Research on multi-agent reinforcement learning for coordinating swarms of autonomous
-      agents operating under energy constraints, where communication between agents is
-      triggered only when it is worth the cost. Work is ongoing, with a preprint planned
-      once results are finalized.
-    </p>
+  </header>
+
+  <!-- MENU OVERLAY (mobile) -->
+  <nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
+    <a href="../index.html">Home</a>
+    <a href="index.html" class="active">Publications</a>
+    <a href="../projects/index.html">Projects</a>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">Publications</h1>
+
+    <div class="pub">
+      <div class="pub-top">
+        <div class="pub-title">Decentralized Learning for Coordination in Energy-Constrained Autonomous Agent Swarms
+        </div>
+        <span class="badge progress">In progress</span>
+      </div>
+      <p class="pub-desc">
+        Research on multi-agent reinforcement learning for coordinating swarms of autonomous
+        agents operating under energy constraints, where agents communicate only when the
+        expected benefit from communication justifies the energy cost. Work is ongoing, with a preprint planned
+        once results are finalized.
+      </p>
+    </div>
+
   </div>
 
-</div>
+  <footer>
+    © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 08.07.2026
+  </footer>
 
-<footer>
-  © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 08.07.2026
-</footer>
-
-<script>
-  (function () {
-    var btn = document.getElementById('menuBtn');
-    var body = document.body;
-    btn.addEventListener('click', function () {
-      var open = body.classList.toggle('menu-open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && body.classList.contains('menu-open')) {
-        body.classList.remove('menu-open');
-        btn.setAttribute('aria-expanded', 'false');
-        btn.setAttribute('aria-label', 'Open menu');
-      }
-    });
-  })();
-</script>
+  <script>
+    (function () {
+      var btn = document.getElementById('menuBtn');
+      var body = document.body;
+      btn.addEventListener('click', function () {
+        var open = body.classList.toggle('menu-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && body.classList.contains('menu-open')) {
+          body.classList.remove('menu-open');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Open menu');
+        }
+      });
+    })();
+  </script>
 </body>
+
 </html>
