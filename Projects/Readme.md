@@ -1,2 +1,2 @@
-# batu-sengezer.github.io/Projects
+# batu-sengezer.github.io/projects
 Projects folder
