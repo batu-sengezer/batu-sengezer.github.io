@@ -29,7 +29,7 @@
     }
 
     html {
-      font-size: 15px;
+      font-size: 16px;
       scroll-behavior: smooth;
     }
 
@@ -38,8 +38,10 @@
       font-weight: 300;
       color: var(--text);
       background: #f8f9fa;
-      line-height: 1.75;
+      line-height: 1.7;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     /* NAV BAR */
@@ -316,6 +318,34 @@
       font-weight: 600;
     }
 
+    /* limitations note */
+    .limitations-note {
+      background: #fff8ec;
+      border: 1px solid #f5e0b3;
+      border-left: 4px solid #b7791f;
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: #5c4813;
+    }
+
+    .limitations-note-title {
+      font-family: "Roboto Slab", serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #5c4813;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .limitations-note strong {
+      color: #4a3a0f;
+      font-weight: 600;
+    }
+
     /* video */
     .video-container {
       position: relative;
@@ -497,7 +527,7 @@
       <em>This page details <strong>Tier 1</strong> of a larger project named "Edge AI Across the Compute Spectrum
         Project" where I deploy and measure the same machine-learning workload across the full hardware compute
         spectrum, from a
-        Microcontroller, to an Embedded GPU, to a General-Purpose PC. Alongside this Tier 1 (MCU) implementation,
+        Microcontroller, to an Embedded GPU, to a General-Purpose Computer. Alongside this Tier 1 (MCU) implementation,
         the "Edge AI Across the Compute Spectrum Project" also includes Tier 2 (Embedded GPU) and Tier 3
         (General-Purpose
         Computer/MacBook).</em>
@@ -516,8 +546,8 @@
     <div class="headline-result">
       <div class="headline-result-title">The Result</div>
       <strong>Worst-Case Execution Time (WCET) of 786.89 microseconds across 1,000 runs under scheduler
-        competition, on an STM32F407 running at 168 MHz. This established tight bound demonstrates deterministic
-        inference
+        competition, on an STM32F407 running at 168 MHz. This is the maximum latency observed across those
+        1,000 measured runs, not a formally proven WCET, and it demonstrates highly deterministic inference
         behavior within the system.
       </strong>
     </div>
@@ -658,7 +688,7 @@
               <td class="num">786.58 µs</td>
             </tr>
             <tr>
-              <td><strong>Worst-case (WCET)</strong></td>
+              <td><strong>Maximum observed latency*</strong></td>
               <td class="num"><strong>786.89 µs</strong></td>
             </tr>
             <tr>
@@ -672,6 +702,11 @@
           </tbody>
         </table>
       </div>
+      <p style="font-size: 0.9rem; color: var(--muted);">* Maximum observed latency across 1,000 measured runs, which is
+        a
+        measurement-based characterization, not a formally proven Worst-Case Execution Time. See
+        <a href="#limitations">Limitations</a> below for what that distinction means.
+      </p>
       <figure style="text-align:center; margin: 32px 0;">
         <img src="latency_histogram.png" alt="Inference Latency Histogram across 1,000 Runs"
           style="max-width: 80%; height: auto; border-radius: 8px;">
@@ -683,8 +718,32 @@
       <p>Why is the variation this small? Three architectural reasons working together: no data cache means
         fixed-latency memory access with no cache misses; all buffers are statically allocated, so there's no dynamic
         memory allocation during inference; and the measurement window can't be interrupted. Together, these produce
-        timing that is deterministic enough for <strong>formal schedulability analysis</strong>. At 0.79% CPU
-        utilisation, this task passes Rate Monotonic Analysis with enormous margin to spare.</p>
+        latency that is highly repeatable and low-jitter. Using the observed maximum as a practical working figure,
+        the task runs at just <strong>0.79% CPU utilisation</strong> at its 100 ms period, leaving enormous headroom.
+        However,
+        as the note below explains, this is an informal utilisation argument based on measured data, not a
+        formal Rate Monotonic schedulability proof.</p>
+
+      <h2 id="limitations">Limitations</h2>
+      <div class="limitations-note">
+        <div class="limitations-note-title">Measurement-based, not a formally proven WCET</div>
+        <p>The 786.89 µs figure quoted throughout this page is the maximum value observed across 1,000
+          measured runs under FreeRTOS scheduling load. It is an empirical characterization, not a
+          mathematically proven Worst-Case Execution Time. It does not constitute exhaustive path coverage
+          or a certification-grade timing guarantee, because a rare interference or input scenario outside the
+          1,000 tested runs could in principle produce a higher value. A formally proven WCET would require
+          static or path-based timing analysis of the compiled binary (tools such as aiT, OTAWA, or Chronos),
+          which is standard practice for safety-critical certification (e.g. DO-178C) but outside the scope
+          of this project. Measurement-based characterization over a large number of runs is standard
+          practice for prototype-stage timing analysis, and is the approach used throughout this project.</p>
+      </div>
+      <p>Similarly, <strong>timing safety here relies on task periodicity, not explicit locking.</strong>
+        SensorTask's 100 ms period is designed to exceed the observed inference latency with substantial
+        margin, which is what prevents SensorTask from preempting InferenceTask mid-inference in practice.
+        This is a timing argument rather than an enforced guarantee, since there are no critical sections or
+        explicit locks around the DWT measurement window. A more robust implementation would use a mutex or
+        disable interrupts around the measurement window to make this guarantee explicit rather than
+        implicit.</p>
 
       <h2>What's Next</h2>
       <p>The immediate next step is deploying this same model on a <strong>Jetson Orin Nano</strong>, moving from a
