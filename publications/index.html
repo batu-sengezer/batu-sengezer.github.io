@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Publications — Batu Şengezer</title>
+  <title>Research &amp; Publications — Batu Şengezer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -215,9 +215,38 @@
       margin-bottom: 40px;
     }
 
-    .placeholder-text {
+    .interests-lead {
       font-size: 1rem;
+      color: var(--text);
+      text-align: justify;
+      margin-bottom: 22px;
+    }
+
+    .interest-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .interest {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+
+    .interest h3 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 0.98rem;
+      margin-bottom: 4px;
+    }
+
+    .interest p {
+      font-size: 0.86rem;
       color: var(--muted);
+      line-height: 1.55;
     }
 
     .pub {
@@ -277,8 +306,14 @@
       background: #fff;
       padding: 24px;
       text-align: center;
-      font-size: 12.5px;
+      font-size: 13.5px;
       color: var(--muted);
+    }
+
+    @media (max-width: 600px) {
+      .interest-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 720px) {
@@ -299,8 +334,9 @@
       <!-- Desktop inline links -->
       <nav class="navbar-links" aria-label="Main menu">
         <a href="../index.html">Home</a>
-        <a href="index.html" class="active">Publications</a>
+        <a href="index.html" class="active">Research &amp; Publications</a>
         <a href="../projects/index.html">Projects</a>
+        <a href="../resume/index.html">Resume</a>
       </nav>
 
       <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
@@ -312,12 +348,40 @@
   <!-- MENU OVERLAY (mobile) -->
   <nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
     <a href="../index.html">Home</a>
-    <a href="index.html" class="active">Publications</a>
+    <a href="index.html" class="active">Research &amp; Publications</a>
     <a href="../projects/index.html">Projects</a>
+    <a href="../resume/index.html">Resume</a>
   </nav>
 
   <div class="container">
-    <h1 class="page-title">Publications</h1>
+    <h1 class="page-title">Research &amp; Publications</h1>
+
+    <p class="interests-lead">
+      I like to work on machine learning systems deployed on real, resource-constrained hardware,
+      where every design choice has a measurable cost in memory, latency, and power.
+      My academic goal is to pursue graduate research (MASc or PhD) at the intersection of
+      embedded systems and machine learning, building on a strong foundation in real-time,
+      safety-critical software engineering.
+    </p>
+
+    <div class="interest-grid">
+      <div class="interest">
+        <h3>Real-Time Embedded ML</h3>
+        <p>Deploying neural networks on microcontrollers with provable, cycle-accurate timing guarantees.</p>
+      </div>
+      <div class="interest">
+        <h3>Edge AI &amp; Acceleration</h3>
+        <p>Running inference on embedded GPUs and accelerators under real power and thermal limits.</p>
+      </div>
+      <div class="interest">
+        <h3>Hardware–Software Co-Design</h3>
+        <p>Mapping computation onto the right hardware — from MCUs to FPGAs — for efficiency and determinism.</p>
+      </div>
+      <div class="interest">
+        <h3>Cyber-Physical &amp; Autonomous Systems</h3>
+        <p>Decentralized learning and coordination for constrained autonomous agents.</p>
+      </div>
+    </div>
 
     <div class="pub">
       <div class="pub-top">
@@ -336,7 +400,7 @@
   </div>
 
   <footer>
-    © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 08.07.2026
+    © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 11.07.2026
   </footer>
 
   <script>

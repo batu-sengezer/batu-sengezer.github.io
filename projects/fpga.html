@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>An FPGA Project From My Undergrad — Batu Şengezer</title>
+  <meta name="description" content="A term project from Bilkent's Introduction to Digital Design course: a small FPGA controlled conveyor system for storing and distributing cargo packages, built on a Basys 3 board with ultrasonic sensors and DC motors." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --text: #212529;
+      --muted: #6c757d;
+      --border: #dee2e6;
+      --accent: #0d6efd;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Roboto", sans-serif;
+      font-weight: 300;
+      color: var(--text);
+      background: #f8f9fa;
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAV BAR */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .navbar-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar-name {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .navbar-links {
+      display: none;
+    }
+
+    @media (min-width: 769px) {
+      .navbar-links {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 32px;
+        align-items: center;
+        margin-left: 48px;
+      }
+
+      .navbar-links a {
+        font-family: "Roboto", sans-serif;
+        font-weight: 400;
+        font-size: 0.92rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 8px 10px;
+        border-radius: 6px;
+        transition: background .15s, color .15s;
+      }
+
+      .navbar-links a:hover {
+        background: #f1f3f5;
+      }
+
+      .menu-btn {
+        display: none !important;
+      }
+    }
+
+    .menu-btn {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: box-shadow .2s;
+      flex-shrink: 0;
+    }
+
+    .menu-btn:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-btn span {
+      position: relative;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: background .2s;
+    }
+
+    .menu-btn span::before,
+    .menu-btn span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: transform .25s ease;
+    }
+
+    .menu-btn span::before {
+      top: -6px;
+    }
+
+    .menu-btn span::after {
+      top: 6px;
+    }
+
+    .menu-open .menu-btn span {
+      background: transparent;
+    }
+
+    .menu-open .menu-btn span::before {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-open .menu-btn span::after {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .menu-overlay {
+      position: fixed;
+      top: 72px;
+      right: 20px;
+      z-index: 55;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      min-width: 180px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    }
+
+    .menu-open .menu-overlay {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .menu-overlay a {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+
+    .menu-overlay a:hover {
+      background: #f1f3f5;
+    }
+
+    /* ARTICLE */
+    .article {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    .breadcrumb {
+      font-size: 13.6px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .article .breadcrumb a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .article .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    .page-title {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .article h1 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.75rem;
+      line-height: 1.28;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+
+    .lede {
+      font-size: 0.98rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    .article h2 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.18rem;
+      margin: 20px 0 14px;
+      padding-top: 8px;
+    }
+
+    .article p {
+      margin-bottom: 16px;
+      text-align: justify;
+    }
+
+    .article a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .article a:hover {
+      text-decoration: underline;
+    }
+
+    .article strong {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .article em {
+      font-style: italic;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    /* highlight callout */
+    .headline-result {
+      background: #f0f7ff;
+      border: 1px solid #cce3fd;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #084298;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+    }
+
+    .headline-result-title {
+      font-family: "Roboto Slab", serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #052c65;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .headline-result strong {
+      color: #052c65;
+      font-weight: 600;
+    }
+
+    /* limitations note */
+    .limitations-note {
+      background: #fff8ec;
+      border: 1px solid #f5e0b3;
+      border-left: 4px solid #b7791f;
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: #5c4813;
+    }
+
+    .limitations-note-title {
+      font-family: "Roboto Slab", serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #5c4813;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .limitations-note strong {
+      color: #4a3a0f;
+      font-weight: 600;
+    }
+
+    /* video */
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      height: 0;
+      margin: 8px 0 8px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0 22px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      padding: 11px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 500;
+      font-family: "Roboto Slab", serif;
+      background: #f1f3f5;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td.num,
+    th.num {
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    /* bullet lists */
+    .article ul {
+      margin: 0 0 18px 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .article ul li {
+      position: relative;
+      padding-left: 22px;
+      margin-bottom: 10px;
+    }
+
+    .article ul li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 11px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text);
+    }
+
+    .article a.repo-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: #181717;
+      color: #fff !important;
+      font-size: 0.9rem;
+      padding: 11px 20px;
+      border-radius: 7px;
+      text-decoration: none;
+      margin-top: 8px;
+      transition: opacity .18s;
+    }
+
+    .article a.repo-cta:hover {
+      opacity: 0.88;
+      text-decoration: none;
+    }
+
+    .article a.repo-cta svg {
+      width: 18px;
+      height: 18px;
+      fill: #fff;
+    }
+
+    .closing {
+      font-style: italic;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      padding: 24px;
+      text-align: center;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 600px) {
+      .article h1 {
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .navbar-inner {
+        padding: 0 16px;
+      }
+    }
+
+    /* video container for responsive youtube embed */
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 */
+      height: 0;
+      overflow: hidden;
+      max-width: 100%;
+      background: #000;
+      margin: 32px 0;
+      border-radius: 8px;
+    }
+    .video-container iframe,
+    .video-container object,
+    .video-container embed {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- NAV BAR -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a class="navbar-name" href="../index.html">Batu Şengezer</a>
+
+      <!-- Desktop inline links -->
+      <nav class="navbar-links" aria-label="Main menu">
+        <a href="../index.html">Home</a>
+        <a href="../publications/index.html">Research &amp; Publications</a>
+        <a href="index.html">Projects</a>
+        <a href="../resume/index.html">Resume</a>
+      </nav>
+
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MENU OVERLAY (mobile) -->
+  <nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
+    <a href="../index.html">Home</a>
+    <a href="../publications/index.html">Research &amp; Publications</a>
+    <a href="index.html">Projects</a>
+    <a href="../resume/index.html">Resume</a>
+  </nav>
+
+  <article class="article">
+
+    <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
+
+    <div class="page-title">Digital Design Project</div>
+    <hr class="divider" />
+    <h1>An FPGA Project From My Undergrad: Cargo Distribution Conveyor System</h1>
+    <p class="lede">A term project from Bilkent's Introduction to Digital Design course: a small FPGA controlled conveyor system for storing and distributing cargo packages, built on a Basys 3 board with ultrasonic sensors and DC motors.</p>
+
+    <hr class="divider" />
+
+    <p>This is one of the older things I've built, from EEE-102, Introduction to Digital Design, back in undergrad at Bilkent. It's also one of the courses I did best in (A-), so I still think back on it every now and then. I figured it's worth writing up properly since the video has been sitting online for years without any real explanation next to it.</p>
+
+    <div class="video-container">
+      <iframe src="https://www.youtube.com/embed/oNEmt7wY598" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
+
+    <h2>The assignment</h2>
+    <p>The course project was fairly open ended: build something using the FPGA board that actually controls a physical process, using what we'd learned about digital logic design that semester. I ended up going with a small storage and distribution system for aerial cargo, packages come in, get staged for pickup, and then get moved into storage once someone takes them. Half the fun of picking that scenario was that it gave me an excuse to build two conveyor belts.</p>
+
+    <h2>What it does</h2>
+    <p>When you activate the system, a package gets released and a green LED turns on to show it's ready for pickup. Once the package is taken from the pickup point, the system moves it onward into the storage section of the model. All of this, release, signaling, and the belt movement, is handled by logic running directly on the FPGA. There's no microcontroller anywhere in the design, it's all done through the digital logic itself.</p>
+
+    <h2>The hardware</h2>
+    <p>The board is a Digilent Basys 3, which has a Xilinx Artix-7 XC7A35T-1CPG236C FPGA on it. That's what runs the whole control sequence as actual digital logic rather than code running on a processor.</p>
+
+    <p>For sensing package position at each stage (distribution, pickup, storage), I used three HC-SR04 ultrasonic range sensors. These work by sending out a pulse and timing how long it takes for the echo to come back. On the FPGA side that meant generating the trigger pulse and measuring the echo pulse width in hardware, then turning that into a simple present or not present signal for the rest of the logic to use.</p>
+
+    <p>The two DC motors that drive the conveyor belts couldn't be wired straight into the FPGA's pins, the current draw is too much for the board's I/O to handle safely. So there's an L298N motor driver sitting in between, which takes the logic level signals from the FPGA and switches the higher current going to the motors. That's also what let me control each belt's direction independently.</p>
+
+    <p>Four LEDs handle status feedback around the system, mainly the "package ready" indicator, plus a couple of others for different states.</p>
+
+    <h2>Looking back on it</h2>
+    <p>I haven't touched VHDL or FPGA design since this course, my work these days is mostly on the software side, real time C/C++ and more recently embedded ML. But this project is where I first had to think about timing at the gate level, and about how a design that looks clean on paper still has to survive an actual motor driver and a sensor reading that doesn't always come back clean. Some of that thinking has stuck with me even outside of FPGA work specifically.</p>
+
+    <p><a href="https://www.youtube.com/watch?v=oNEmt7wY598" target="_blank" rel="noopener">Watch the demo video on YouTube →</a></p>
+
+</article>
+
+  <footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 11.07.2026</footer>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('menuBtn');
+      var body = document.body;
+      btn.addEventListener('click', function () {
+        var open = body.classList.toggle('menu-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && body.classList.contains('menu-open')) {
+          body.classList.remove('menu-open');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Open menu');
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>
