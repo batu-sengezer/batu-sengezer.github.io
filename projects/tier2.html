@@ -42,6 +42,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
     /* NAV BAR */
@@ -49,6 +50,7 @@
       position: sticky;
       top: 0;
       z-index: 60;
+      width: 100%;
       background: #fff;
       border-bottom: 1px solid var(--border);
     }
@@ -208,6 +210,8 @@
     /* ARTICLE */
     .article {
       max-width: 1140px;
+      width: 100%;
+      min-width: 0;
       margin: 0 auto;
       padding: 60px 24px;
     }
@@ -301,6 +305,7 @@
       line-height: 1.6;
       color: #084298;
       box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+      text-align: justify;
     }
 
     .headline-result-title {
@@ -463,6 +468,7 @@
 
     footer {
       margin-top: auto;
+      width: 100%;
       border-top: 1px solid var(--border);
       background: #fff;
       padding: 24px;
