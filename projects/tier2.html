@@ -1,49 +1,465 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Compute Tier 2 — Batu Şengezer</title>
+  <title>Compute Tier 2 — Edge AI on the NVIDIA Jetson Orin Nano — Batu Şengezer</title>
+  <meta name="description"
+    content="Deploying a neural network on an NVIDIA Jetson Orin Nano with TensorRT and hand-written CUDA, measuring where GPU acceleration helps and where it does not." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --text: #212529; --muted: #6c757d; --border: #dee2e6; }
-    html { font-size: 16px; }
-    body { font-family: "Roboto", sans-serif; font-weight: 300; color: var(--text); background: #f8f9fa; line-height: 1.7; min-height: 100vh; display: flex; flex-direction: column; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --text: #212529;
+      --muted: #6c757d;
+      --border: #dee2e6;
+      --accent: #0d6efd;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Roboto", sans-serif;
+      font-weight: 300;
+      color: var(--text);
+      background: #f8f9fa;
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
     /* NAV BAR */
-    .navbar { position: sticky; top: 0; z-index: 60; background: #fff; border-bottom: 1px solid var(--border); }
-    .navbar-inner { max-width: 1140px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .navbar-name { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.2rem; letter-spacing: 0.01em; color: var(--text); text-decoration: none; flex-shrink: 0; }
-    .navbar-links { display: none; }
-    @media (min-width: 769px) {
-      .navbar-links { display: flex; flex: 1; justify-content: flex-end; gap: 32px; align-items: center; margin-left: 48px; }
-      .navbar-links a { font-family: "Roboto", sans-serif; font-weight: 400; font-size: 0.92rem; color: var(--text); text-decoration: none; padding: 8px 10px; border-radius: 6px; transition: background .15s, color .15s; }
-      .navbar-links a:hover { background: #f1f3f5; }
-      .menu-btn { display: none !important; }
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
     }
-    .menu-btn { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow .2s; flex-shrink: 0; }
-    .menu-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .menu-btn span { position: relative; width: 18px; height: 2px; background: var(--text); transition: background .2s; }
-    .menu-btn span::before, .menu-btn span::after { content: ""; position: absolute; left: 0; width: 18px; height: 2px; background: var(--text); transition: transform .25s ease; }
-    .menu-btn span::before { top: -6px; }
-    .menu-btn span::after  { top: 6px; }
-    .menu-open .menu-btn span { background: transparent; }
-    .menu-open .menu-btn span::before { transform: translateY(6px) rotate(45deg); }
-    .menu-open .menu-btn span::after  { transform: translateY(-6px) rotate(-45deg); }
-    .menu-overlay { position: fixed; top: 72px; right: 20px; z-index: 55; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; padding: 8px; min-width: 180px; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: opacity .18s ease, transform .18s ease, visibility .18s ease; }
-    .menu-open .menu-overlay { opacity: 1; visibility: visible; transform: translateY(0); }
-    .menu-overlay a { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1rem; color: var(--text); text-decoration: none; padding: 10px 14px; border-radius: 6px; transition: background .15s; }
-    .menu-overlay a:hover { background: #f1f3f5; }
 
-    .container { max-width: 1140px; margin: 0 auto; padding: 60px 24px; }
-    .breadcrumb { font-size: 0.85rem; color: var(--muted); margin-bottom: 20px; }
-    .breadcrumb a { color: var(--muted); text-decoration: none; }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .page-title { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.8rem; margin-bottom: 16px; color: var(--muted); text-align: center; }
-    .placeholder-text { font-size: 1rem; color: var(--muted); }
+    .navbar-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar-name {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .navbar-links {
+      display: none;
+    }
+
+    @media (min-width: 769px) {
+      .navbar-links {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 32px;
+        align-items: center;
+        margin-left: 48px;
+      }
+
+      .navbar-links a {
+        font-family: "Roboto", sans-serif;
+        font-weight: 400;
+        font-size: 0.92rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 8px 10px;
+        border-radius: 6px;
+        transition: background .15s, color .15s;
+      }
+
+      .navbar-links a:hover {
+        background: #f1f3f5;
+      }
+
+      .menu-btn {
+        display: none !important;
+      }
+    }
+
+    .menu-btn {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: box-shadow .2s;
+      flex-shrink: 0;
+    }
+
+    .menu-btn:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-btn span {
+      position: relative;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: background .2s;
+    }
+
+    .menu-btn span::before,
+    .menu-btn span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: transform .25s ease;
+    }
+
+    .menu-btn span::before {
+      top: -6px;
+    }
+
+    .menu-btn span::after {
+      top: 6px;
+    }
+
+    .menu-open .menu-btn span {
+      background: transparent;
+    }
+
+    .menu-open .menu-btn span::before {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-open .menu-btn span::after {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .menu-overlay {
+      position: fixed;
+      top: 72px;
+      right: 20px;
+      z-index: 55;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      min-width: 180px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    }
+
+    .menu-open .menu-overlay {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .menu-overlay a {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+
+    .menu-overlay a:hover {
+      background: #f1f3f5;
+    }
+
+    /* ARTICLE */
+    .article {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    .breadcrumb {
+      font-size: 13.6px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .article .breadcrumb a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .article .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    .page-title {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .article h1 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.75rem;
+      line-height: 1.28;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+
+    .lede {
+      font-size: 0.98rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    .article h2 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.18rem;
+      margin: 20px 0 14px;
+      padding-top: 8px;
+    }
+
+    .article p {
+      margin-bottom: 16px;
+      text-align: justify;
+    }
+
+    .article a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .article a:hover {
+      text-decoration: underline;
+    }
+
+    .article strong {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .article em {
+      font-style: italic;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    /* highlight callout */
+    .headline-result {
+      background: #f0f7ff;
+      border: 1px solid #cce3fd;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #084298;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+    }
+
+    .headline-result-title {
+      font-family: "Roboto Slab", serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #052c65;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .headline-result strong {
+      color: #052c65;
+      font-weight: 600;
+    }
+
+    /* limitations note */
+    .limitations-note {
+      background: #fff8ec;
+      border: 1px solid #f5e0b3;
+      border-left: 4px solid #b7791f;
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: #5c4813;
+    }
+
+    .limitations-note-title {
+      font-family: "Roboto Slab", serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #5c4813;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .limitations-note strong {
+      color: #4a3a0f;
+      font-weight: 600;
+    }
+
+    /* video */
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      height: 0;
+      margin: 8px 0 8px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0 22px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      padding: 11px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 500;
+      font-family: "Roboto Slab", serif;
+      background: #f1f3f5;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td.num,
+    th.num {
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    /* bullet lists */
+    .article ul {
+      margin: 0 0 18px 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .article ul li {
+      position: relative;
+      padding-left: 22px;
+      margin-bottom: 10px;
+    }
+
+    .article ul li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 11px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text);
+    }
+
+    .article a.repo-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: #181717;
+      color: #fff !important;
+      font-size: 0.9rem;
+      padding: 11px 20px;
+      border-radius: 7px;
+      text-decoration: none;
+      margin-top: 8px;
+      transition: opacity .18s;
+    }
+
+    .article a.repo-cta:hover {
+      opacity: 0.88;
+      text-decoration: none;
+    }
+
+    .article a.repo-cta svg {
+      width: 18px;
+      height: 18px;
+      fill: #fff;
+    }
+
+    .closing {
+      font-style: italic;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+    }
 
     footer {
       margin-top: auto;
@@ -54,63 +470,628 @@
       font-size: 13.5px;
       color: var(--muted);
     }
-    @media (max-width: 720px) { .navbar-inner { padding: 0 16px; } }
+
+    @media (max-width: 600px) {
+      .article h1 {
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .navbar-inner {
+        padding: 0 16px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
-<!-- NAV BAR -->
-<header class="navbar">
-  <div class="navbar-inner">
-    <a class="navbar-name" href="../index.html">Batu Şengezer</a>
+  <!-- NAV BAR -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a class="navbar-name" href="../index.html">Batu Şengezer</a>
 
-    <!-- Desktop inline links -->
-    <nav class="navbar-links" aria-label="Main menu">
-      <a href="../index.html">Home</a>
-      <a href="../publications/index.html">Research &amp; Publications</a>
-      <a href="index.html">Projects</a>
-      <a href="../resume/index.html">Resume</a>
-    </nav>
+      <!-- Desktop inline links -->
+      <nav class="navbar-links" aria-label="Main menu">
+        <a href="../index.html">Home</a>
+        <a href="../publications/index.html">Research &amp; Publications</a>
+        <a href="index.html">Projects</a>
+        <a href="../resume/index.html">Resume</a>
+      </nav>
 
-    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
-      <span></span>
-    </button>
-  </div>
-</header>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+      </button>
+    </div>
+  </header>
 
-<!-- MENU OVERLAY (mobile) -->
-<nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
-  <a href="../index.html">Home</a>
-  <a href="../publications/index.html">Research &amp; Publications</a>
-  <a href="index.html">Projects</a>
-  <a href="../resume/index.html">Resume</a>
-</nav>
+  <!-- MENU OVERLAY (mobile) -->
+  <nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
+    <a href="../index.html">Home</a>
+    <a href="../publications/index.html">Research &amp; Publications</a>
+    <a href="index.html">Projects</a>
+    <a href="../resume/index.html">Resume</a>
+  </nav>
 
-<div class="container">
-  <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
-  <h1 class="page-title">Compute Tier 2 — Embedded GPU</h1>
-  <p class="placeholder-text">Jetson Orin Nano · GPU-accelerated inference — write-up coming soon.</p>
-</div>
+  <article class="article">
 
-<footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 11.07.2026</footer>
+    <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
 
-<script>
-  (function () {
-    var btn = document.getElementById('menuBtn');
-    var body = document.body;
-    btn.addEventListener('click', function () {
-      var open = body.classList.toggle('menu-open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && body.classList.contains('menu-open')) {
-        body.classList.remove('menu-open');
-        btn.setAttribute('aria-expanded', 'false');
-        btn.setAttribute('aria-label', 'Open menu');
-      }
-    });
-  })();
-</script>
+    <div class="page-title">Compute Tier 2 - Embedded GPU</div>
+    <hr class="divider" />
+    <h1>Edge AI on the NVIDIA Jetson Orin Nano: TensorRT, Hand-Written CUDA, Contention, and Power</h1>
+    <p class="lede">Five measurements of an embedded GPU, establishing that acceleration is a property of the workload
+      rather than of the hardware.</p>
+
+    <hr class="divider" />
+
+    <p style="background: #f1f3f5; padding: 16px 20px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 24px;">
+      <em>This page details <strong>Tier 2</strong> of a larger project named "Edge AI Across the Compute Spectrum
+        Project" where I deploy and measure the same machine-learning workload across the full hardware compute
+        spectrum, from a Microcontroller, to an Embedded GPU, to a General-Purpose Computer. Alongside this Tier 2
+        (Embedded GPU) implementation, the project also includes <a href="tier1.html">Tier 1 (MCU)</a> and Tier 3
+        (General-Purpose Computer/MacBook).</em>
+    </p>
+
+    <p>GPU acceleration is commonly assumed to be unconditional, meaning that relocating a workload to the GPU is
+      expected to reduce its execution time. The assumption holds frequently enough that it is seldom examined. On an
+      embedded board with a shared memory bus and a constrained power budget, it requires measurement. The work on
+      this board is divided into five sections.</p>
+
+    <p><strong>Section one</strong> evaluates the validity of that expectation. The question is whether the benefit
+      comes from using the GPU alone, or whether it depends on the arithmetic intensity of the workload. The same
+      small neural network from Tier 1 was deployed here using TensorRT and compared directly against CPU
+      execution.</p>
+
+    <p><strong>Section two</strong> sets TensorRT aside and implements the GPU code manually. TensorRT generates GPU
+      kernels automatically, without the developer specifying how the work is divided across the hardware. Here that
+      division is written by hand in CUDA and applied to a large, arithmetic-intensive workload, which is the opposite
+      of the workload in section one, then benchmarked against both a CPU baseline and cuBLAS, NVIDIA's production
+      linear algebra library.</p>
+
+    <p><strong>Section three</strong> profiles a live camera pipeline. A pipeline here is the full sequence of
+      operations required to turn a raw camera frame into a prediction, covering capture, resizing, colour conversion,
+      normalization, inference, and result readout. In a deployed system the model never receives clean input
+      directly, so every stage of that sequence adds to the latency the system actually experiences, and benchmarking
+      inference alone measures only one portion of the pipeline.</p>
+
+    <p><strong>Section four</strong> measures latency while the board is deliberately loaded with competing CPU and
+      memory work. When multiple tasks execute concurrently on shared hardware, they contend for the same cores, the
+      same memory bandwidth, and the same bus, and that contention introduces interference in each other's timing.
+      This section tests whether the section one figures hold under that interference rather than on an otherwise idle
+      board.</p>
+
+    <p><strong>Section five</strong> measures power draw and the resulting energy efficiency at two different power
+      modes. Edge hardware typically operates on a fixed power budget, often from a battery, where every watt consumed
+      by computation is a watt unavailable to the rest of the system and a reduction in operating time. Raw throughput
+      alone is therefore an incomplete measure on this class of hardware, so this section measures what that
+      throughput actually costs.</p>
+
+    <div class="headline-result">
+      <div class="headline-result-title">The Results</div>
+      <strong>
+        In section one, a small dense model showed no benefit from GPU execution and no benefit from reduced
+        precision, because the workload was too small for computation to dominate. In section two, large matrix
+        multiplication implemented by hand outperformed a single-threaded CPU baseline by a factor of 266 at
+        N = 1024, with a further 1.5 times gained through shared memory tiling. In section three, inference
+        accounted for roughly 1.3 percent of total latency inside a deployed camera pipeline. In section four,
+        synthetic CPU and memory load shifted mean latency by 20.3 percent while the coefficient of variance rose
+        from under eight percent to over seven hundred. In section five, constraining the power budget improved
+        energy efficiency rather than degrading it.
+      </strong>
+    </div>
+
+    <p>The full video walkthrough is below, followed by a written summary. The complete project is available on my <a
+        href="https://github.com/batu-sengezer/edge-ai-jetson-orin-nano" target="_blank" rel="noopener">GitHub</a>.</p>
+
+    <hr class="divider" />
+
+    <h2>Video Walkthrough</h2>
+    <div class="video-container">
+      <iframe src="https://www.youtube.com/embed/1nuu8YK7a6M"
+        title="Edge AI on the NVIDIA Jetson Orin Nano: TensorRT, Hand-Written CUDA, Contention, and Power"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+    </div>
+
+    <hr class="divider" />
+
+    <h2>The Hardware</h2>
+    <p>The target is the <strong>NVIDIA Jetson Orin Nano Super Developer Kit</strong>, using the <strong>8 GB
+        variant</strong> of the compute module. The module is a system-on-module with a unified memory architecture,
+      in which the CPU and GPU sit on the same physical die and address the same physical memory, rather than each
+      holding a private memory space connected by a discrete PCIe link, as on a desktop with a dedicated GPU.</p>
+    <p>The GPU has <strong>1024 CUDA cores</strong> of Ampere architecture at compute capability 8.7, grouped into
+      <strong>8 streaming multiprocessors</strong>, which are the scheduling units the hardware assigns thread blocks
+      to. It also carries <strong>32 Tensor Cores</strong>, separate units built for reduced-precision matrix
+      operations. The CPU is <strong>6 Arm Cortex-A78AE cores</strong>, and memory is <strong>8 GB of 128-bit
+        LPDDR5</strong>, shared between both processors.
+    </p>
+    <p>That shared memory proves to be the most consequential detail in the sections that follow. On a desktop, a
+      CPU-heavy background process and a GPU inference task contend for separate memory. Here they do not.</p>
+    <p>The software stack is JetPack 6.2.1, bundling L4T 36.4.7 on Ubuntu 22.04, with CUDA 12.6 and TensorRT 10.3.
+      Development was conducted entirely from a MacBook. The JetPack image was flashed to a microSD card with Balena
+      Etcher, and all subsequent work was performed over SSH, with no Ubuntu host at any stage.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 1: TensorRT Deployment and CPU Comparison</h2>
+    <p>The model is the classifier carried over from Tier 1, which takes 561 features derived from accelerometer and
+      gyroscope data and predicts one of six activity classes through a small dense network of roughly 38,000
+      parameters.</p>
+    <p>The trained Keras model was converted to ONNX with tf2onnx, transferred to the board, and compiled into two
+      TensorRT engines, one at FP32 and one at FP16. Compilation performs substantial restructuring rather than a
+      format conversion. TensorRT fuses layers so that operations separate in the original network become a single
+      GPU kernel, then profiles several candidate kernel implementations per layer and retains whichever performs
+      best on this specific chip. The output is a
+      serialized engine tuned to this exact GPU.</p>
+    <p>FP16 halves the memory required per value and, on a GPU with Tensor Cores, can substantially raise throughput
+      when a workload is limited by arithmetic. The expectation was that FP16 would be measurably faster.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th class="num">FP16</th>
+            <th class="num">FP32</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Throughput</td>
+            <td class="num">16,093 qps</td>
+            <td class="num">16,232 qps</td>
+          </tr>
+          <tr>
+            <td>Mean latency</td>
+            <td class="num">0.0452 ms</td>
+            <td class="num">0.0450 ms</td>
+          </tr>
+          <tr>
+            <td>Median</td>
+            <td class="num">0.0449 ms</td>
+            <td class="num">0.0447 ms</td>
+          </tr>
+          <tr>
+            <td>p99</td>
+            <td class="num">0.0579 ms</td>
+            <td class="num">0.0569 ms</td>
+          </tr>
+          <tr>
+            <td>GPU compute time</td>
+            <td class="num">0.0305 ms</td>
+            <td class="num">0.0305 ms</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>FP16 produced no improvement and was fractionally slower. The measurement accounts for this directly, since
+      <strong>GPU compute time was identical between the two engines</strong>, at 0.0305 ms in both cases. The absence of an
+      FP16 advantage is not overhead masking a real speedup, because there was no compute speedup to mask. This
+      network performs too little arithmetic for halving precision to act on.</p>
+    <p>What remains in the measurement is fixed overhead. TensorRT reports the transfers separately, with
+      host-to-device averaging 0.0073 ms and device-to-host the same, against 0.0305 ms of GPU compute. <strong>Roughly a third of the
+        end-to-end path is spent moving 561 numbers across a memory boundary rather than computing anything.</strong>
+    </p>
+    <p>That carries a testable implication. If overhead really dominates, the GPU should not merely fail to win, it
+      should be able to lose outright, since the CPU never pays a transfer cost. So the comparison was measured at
+      four separate boundaries.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Measurement boundary</th>
+            <th class="num">Mean latency</th>
+            <th>What is included</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CPU only (ONNX Runtime)</td>
+            <td class="num">0.030 ms</td>
+            <td>Compute only, no transfer</td>
+          </tr>
+          <tr>
+            <td>GPU compute only</td>
+            <td class="num">0.031 ms</td>
+            <td>Kernel execution alone</td>
+          </tr>
+          <tr>
+            <td>GPU end to end</td>
+            <td class="num">0.045 ms</td>
+            <td>Kernel plus both transfers</td>
+          </tr>
+          <tr>
+            <td>GPU via Python</td>
+            <td class="num">0.169 ms</td>
+            <td>The above plus interpreter dispatch</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Raw compute is a tie. Every boundary that includes realistic overhead favours the CPU, and the disadvantage
+      grows in proportion to how much of the software stack sits inside the measurement. In roofline terms, this
+      workload sits far toward the overhead-bound end, where raising arithmetic throughput has almost nothing left to
+      act on.</p>
+    <p>This constitutes a result rather than a failure, and it leaves one question open. Either the board is incapable
+      of a large speedup, or this particular workload was never going to produce one.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 2: Hand-Written CUDA Matrix Multiplication</h2>
+    <p>Section two answers that by giving the same GPU a compute-bound workload, and by changing who makes the
+      parallelization decisions. In section one, TensorRT chose how to divide work across threads and blocks, which
+      memory each thread read from, and which kernel implementation to use. Here those choices are made by hand.</p>
+    <p>The task is dense matrix multiplication, selected because it underlies most neural network computation and has
+      a parallel structure clean enough to implement from scratch while still admitting meaningful optimization.
+      Three implementations were compared.</p>
+    <ul>
+      <li><strong>CPU baseline:</strong> a single-threaded triple nested loop. For each output element, traverse a row
+        and a column and accumulate the products. No parallelism at all.</li>
+      <li><strong>Naive CUDA kernel:</strong> one thread per output element. At N = 1024 that is over a million threads
+        launched, scheduled across 1024 cores. Every thread reads its operands directly from global memory on every
+        iteration, and adjacent threads request heavily overlapping data.</li>
+      <li><strong>Tiled CUDA kernel:</strong> threads in a block cooperatively load one tile of each input matrix into
+        shared memory, which is a small on-chip pool roughly a hundred times faster than global memory, synchronize so
+        that no thread computes before the tile is fully loaded, then work against the shared copy.</li>
+    </ul>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="num">N</th>
+            <th class="num">CPU</th>
+            <th class="num">Naive</th>
+            <th class="num">Tiled</th>
+            <th class="num">Naive vs CPU</th>
+            <th class="num">Tiled vs naive</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">256</td>
+            <td class="num">41.576 ms</td>
+            <td class="num">0.250 ms</td>
+            <td class="num">0.161 ms</td>
+            <td class="num">166×</td>
+            <td class="num">1.55×</td>
+          </tr>
+          <tr>
+            <td class="num">512</td>
+            <td class="num">345.241 ms</td>
+            <td class="num">1.710 ms</td>
+            <td class="num">1.090 ms</td>
+            <td class="num">202×</td>
+            <td class="num">1.57×</td>
+          </tr>
+          <tr>
+            <td class="num">1024</td>
+            <td class="num">3468.711 ms</td>
+            <td class="num">13.061 ms</td>
+            <td class="num">8.643 ms</td>
+            <td class="num">266×</td>
+            <td class="num">1.51×</td>
+          </tr>
+          <tr>
+            <td class="num">2048</td>
+            <td class="num">not run</td>
+            <td class="num">102.020 ms</td>
+            <td class="num">69.716 ms</td>
+            <td class="num">-</td>
+            <td class="num">1.46×</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The speedup is not constant. It rises from 166 to 202 to 266 as the matrices grow, and that trend is more
+      informative than any single ratio. The CPU implementation scales with the cube of matrix dimension, so each
+      doubling of size increases its work roughly eightfold. The GPU is not fully occupied at the smaller sizes, so a
+      larger problem gives it more work to execute in parallel rather than sequentially, and the margin widens.</p>
+    <p>Tiling produced a consistent improvement of approximately 1.5 times at every size tested, consistent with the
+      expected impact of reduced global memory traffic through data reuse. Memory traffic was not profiled directly,
+      so this remains the most likely explanation rather than a confirmed mechanism.</p>
+    <p>The CPU baseline was not run at N = 2048. At 1024 it already required three and a half seconds, and the trend
+      was unambiguous from the three smaller sizes, so the measurement was omitted rather than estimated.</p>
+
+    <h2>Comparison Against cuBLAS Library</h2>
+    <p>Outperforming a single-threaded CPU loop is a low bar, and reporting that comparison alone would be
+      misleading. The tiled kernel was therefore also measured against <strong>cuBLAS</strong>, NVIDIA's production
+      linear algebra library, on the same problem at N = 1024.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Implementation</th>
+            <th class="num">Time at N = 1024</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Naive CUDA kernel</td>
+            <td class="num">13.061 ms</td>
+          </tr>
+          <tr>
+            <td>Tiled CUDA kernel</td>
+            <td class="num">8.643 ms</td>
+          </tr>
+          <tr>
+            <td><strong>cuBLAS</strong></td>
+            <td class="num"><strong>1.706 ms</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>cuBLAS is roughly five times faster</strong>, placing the hand-written kernel at about 20% of its
+      throughput. That gap is the expected outcome. cuBLAS keeps operands in registers rather than returning to shared
+      memory between operations, schedules work at the level of warps, which are the groups of thirty-two threads the
+      hardware executes in lockstep, and selects among multiple distinct kernel implementations depending on the exact
+      matrix dimensions. A first hand-written implementation is not positioned to match that.</p>
+    <p>The objective of this section was not to beat NVIDIA. It was to develop enough understanding of GPU parallelism
+      and the memory hierarchy to write a kernel from scratch, substantially outperform a CPU baseline, and improve it
+      further through a specific and explainable optimization. Production workloads should use cuBLAS or TensorRT.
+      Understanding what those libraries do internally is a separate and worthwhile thing.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 3: Live Camera Pipeline Profiling</h2>
+    <p>Sections one and two measured inference in isolation, on a quiet board with the data already in place. A
+      deployed system does not work that way. Input has to be acquired from a sensor and prepared before inference can
+      run, and the result has to reach whatever acts on it.</p>
+    <p>This section profiled a live camera pipeline running MobileNetV2, pretrained on ImageNet and not trained as
+      part of this project. The contribution here is the deployment and the profiling, not the model. Benchmarked in
+      isolation, the compiled engine achieves 1,233 inferences per second at a mean latency of 0.850 ms.</p>
+    <p>Running on a live USB camera feed, two timers were recorded per frame rather than one. The first measures
+      inference alone, and the second measures the complete cycle of capture, resizing, colour conversion,
+      normalization, inference, and result readout.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Measurement</th>
+            <th class="num">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Inference alone</td>
+            <td class="num">2.2 to 2.3 ms</td>
+          </tr>
+          <tr>
+            <td>Full per-frame pipeline</td>
+            <td class="num">178 to 184 ms</td>
+          </tr>
+          <tr>
+            <td>Frame rate</td>
+            <td class="num">5.4 to 5.6 FPS</td>
+          </tr>
+          <tr>
+            <td><strong>Inference share of per-frame time</strong></td>
+            <td class="num"><strong>~1.3%</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The surrounding pipeline is roughly <strong>78 times more expensive than the model itself</strong>. The most
+      likely dominant cost is frame capture and decode at 1920 by 1080, which happens before the model receives any
+      input, with resizing and normalization contributing a smaller share. The pipeline was not instrumented stage by
+      stage, so that attribution is the most probable reading rather than a measured fact. What supports it as a
+      structural property rather than noise is the consistency across frames, since the figures repeat within a
+      narrow band throughout the run.</p>
+    <p>The practical implication is that further model optimization on this platform would yield almost nothing.
+      Reducing model size, lowering precision, or applying a more aggressive optimizer would all target something that
+      already accounts for near-negligible time relative to the data path where the latency actually lives.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 4: Contention and Interference</h2>
+    <p>Every prior measurement ran on an otherwise idle board, and deployed systems do not operate that way. A flight
+      computer runs control, sensor fusion, logging, and telemetry concurrently with inference, all contending for the
+      same processor and the same memory.</p>
+    <p>The section one benchmark was run twice, once quiet and once under deliberate load generated by
+      <strong>stress-ng</strong> with four CPU workers performing continuous arithmetic and two memory workers each
+      continuously allocating, writing, and freeing one gigabyte. The memory workers are deliberate rather than
+      incidental. Because the CPU and GPU share the same physical memory and memory bus on this board, a CPU-only
+      stress test would contend for cores but not necessarily for the bandwidth that GPU data transfers depend on.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th class="num">Quiet</th>
+            <th class="num">Under load</th>
+            <th class="num">Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Throughput</td>
+            <td class="num">16,272.6 qps</td>
+            <td class="num">13,134.9 qps</td>
+            <td class="num">-19.3%</td>
+          </tr>
+          <tr>
+            <td>Mean latency</td>
+            <td class="num">0.0448 ms</td>
+            <td class="num">0.0539 ms</td>
+            <td class="num">+20.3%</td>
+          </tr>
+          <tr>
+            <td>Median</td>
+            <td class="num">0.0441 ms</td>
+            <td class="num">0.0444 ms</td>
+            <td class="num">+0.7%</td>
+          </tr>
+          <tr>
+            <td>p90</td>
+            <td class="num">0.0450 ms</td>
+            <td class="num">0.0458 ms</td>
+            <td class="num">+1.8%</td>
+          </tr>
+          <tr>
+            <td>p95</td>
+            <td class="num">0.0459 ms</td>
+            <td class="num">0.0476 ms</td>
+            <td class="num">+3.7%</td>
+          </tr>
+          <tr>
+            <td>p99</td>
+            <td class="num">0.0581 ms</td>
+            <td class="num">0.0660 ms</td>
+            <td class="num">+13.6%</td>
+          </tr>
+          <tr>
+            <td><strong>Coefficient of variance</strong></td>
+            <td class="num"><strong>7.9%</strong></td>
+            <td class="num"><strong>750.9%</strong></td>
+            <td class="num"><strong>~95×</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The median moved by less than one percent. The typical inference was essentially unaffected by four saturated
+      cores and two gigabytes of continuous memory traffic. The degradation nonetheless grows with every step further into
+      the tail, reaching 1.8% at the 90th percentile, 3.7% at the 95th, and 13.6% at the 99th.</p>
+    <p>The clearest signal is the coefficient of variance, which expresses how widely individual measurements scatter
+      around their own mean. It rose from 7.9% to 750.9%. <strong>The average moved by a fifth, while the spread
+        around it grew by roughly a hundredfold.</strong> The interference did not shift the typical case. It reshaped
+      the distribution, leaving most inferences untouched while delaying a small number severely, which is exactly the
+      pattern an average conceals.</p>
+    <p>One row points to the likely mechanism. The host-to-device transfer maximum rose from 2.8 ms to 16.4 ms, a
+      comparable factor to the overall increase. This suggests the memory subsystem was affected more severely than
+      the GPU kernel, and it matches where the memory load was deliberately directed. This was not confirmed with a
+      profiler, so it is offered as the most likely mechanism rather than an established one.</p>
+    <p>The finding that matters is that averages conceal this behaviour. A system checked only against average latency
+      would show almost no change under this load. Individual inferences tell a different story, and errors of this
+      kind are infrequent and unpredictable, which makes them considerably harder to diagnose than consistent
+      failures. <strong>This is why real-time systems research prioritizes worst-case behaviour and inter-core
+        interference over averages and throughput. The average describes the common case, while the deadline is
+        missed in the tail.</strong></p>
+
+    <hr class="divider" />
+
+    <h2>Section 5: Power Draw and Energy Efficiency</h2>
+    <p>This class of hardware is intended for platforms operating on a fixed power budget, often a battery, where
+      power consumed by computation is power unavailable to the rest of the system. Raw throughput alone is therefore
+      an incomplete measure.</p>
+    <p>The board provides selectable power modes that cap consumption by limiting clock frequencies, and exposes power
+      draw through <code>jtop</code>. The same section one benchmark was run in two of them.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Power mode</th>
+            <th class="num">Power draw</th>
+            <th class="num">GPU utilisation</th>
+            <th class="num">Throughput</th>
+            <th class="num">Inferences per watt</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>MAXN_SUPER (uncapped)</td>
+            <td class="num">6.9 W</td>
+            <td class="num">46.2%</td>
+            <td class="num">16,273 qps</td>
+            <td class="num">~2,358</td>
+          </tr>
+          <tr>
+            <td>15 W cap</td>
+            <td class="num">4.9 W</td>
+            <td class="num">64.7%</td>
+            <td class="num">14,038 qps</td>
+            <td class="num">~2,865</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Capping the power budget reduced power draw by approximately 29% while throughput fell only about 14%, which
+      works out to roughly <strong>21% more inferences per watt in the capped mode</strong>. Constraining the power
+      budget improved energy efficiency rather than degrading it.</p>
+    <p>The reason is in the physics. Dynamic power in CMOS logic scales approximately with the square of supply
+      voltage and linearly with clock frequency, and higher clock frequencies generally require higher voltage to
+      remain stable. Increasing clock speed therefore costs power quadratically while returning performance linearly.
+      Capping the clock ceiling gives up the most expensive performance first.</p>
+    <p>The GPU utilisation figure of 46.2% in the uncapped mode is worth noting on its own. It supports the section
+      one conclusion from a different direction, since this model does not come close to saturating the hardware, and
+      a workload that did would be expected to draw considerably more.</p>
+    <p>The practical consequence is that <strong>the highest performance mode is not the most efficient one</strong>.
+      For a battery-powered system, running the board at its maximum clock buys throughput at a disproportionate cost
+      in power, and the more efficient operating point sits below it.</p>
+
+    <hr class="divider" />
+
+    <h2 id="limitations">Limitations</h2>
+    <div class="limitations-note">
+      <div class="limitations-note-title">Observed maxima, not proven bounds</div>
+      <p>Every maximum latency quoted here is the highest value observed during a limited sampling window,
+        not a proven bound. Static timing analysis was not performed, and the term worst-case execution time
+        is deliberately absent from this project. This applies particularly to Section 4, where a comparable
+        maximum also appeared in a separate run, making the coefficient of variance and the throughput drop
+        the more reliable indicators of interference.</p>
+    </div>
+    <p>The contention results describe <strong>one synthetic load pattern on one board</strong>. The camera pipeline
+      was <strong>not instrumented stage by stage</strong>, so the attribution of most of the 180 ms to frame capture
+      and decode is the most probable reading rather than a measured decomposition.</p>
+
+    <h2>Next Steps</h2>
+    <p>Tier 3 moves the same workload onto <strong>laptop-class Apple silicon</strong>, an M5 Pro, completing the
+      spectrum from a microcontroller with kilobytes of memory to a general-purpose machine with unified memory and a
+      considerably larger power envelope. After that, a cross-tier comparison across all three platforms, examining
+      how latency, throughput, and energy efficiency shift as the hardware constraints relax.</p>
+
+    <hr class="divider" />
+
+    <p style="text-align:center;">The complete project including the CUDA source, benchmark scripts, measurement data,
+      reproduction commands, and detailed documentation is available on GitHub.</p>
+
+    <div style="text-align:center;">
+      <a class="repo-cta" href="https://github.com/batu-sengezer/edge-ai-jetson-orin-nano" target="_blank"
+        rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+        </svg>
+        View on GitHub
+      </a>
+    </div>
+  </article>
+
+  <footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 06.08.2026</footer>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('menuBtn');
+      var body = document.body;
+      btn.addEventListener('click', function () {
+        var open = body.classList.toggle('menu-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && body.classList.contains('menu-open')) {
+          body.classList.remove('menu-open');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Open menu');
+        }
+      });
+    })();
+  </script>
 </body>
+
 </html>
