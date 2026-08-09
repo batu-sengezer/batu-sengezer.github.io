@@ -212,10 +212,17 @@
       padding: 60px 24px;
     }
 
+    .article-top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+    }
+
     .breadcrumb {
       font-size: 13.6px;
       color: var(--muted);
-      margin-bottom: 20px;
+      margin-bottom: 0;
     }
 
     .article .breadcrumb a {
@@ -225,6 +232,40 @@
 
     .article .breadcrumb a:hover {
       text-decoration: underline;
+    }
+
+    .project-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      background: #eef1f4;
+      color: #5a6570;
+      border: 1px solid #d5dbe1;
+    }
+
+    .badge.completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .badge.progress {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .project-date {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 500;
     }
 
     .page-title {
@@ -516,7 +557,13 @@
 
   <article class="article">
 
-    <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
+    <div class="article-top-nav">
+      <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
+      <div class="project-status">
+        <span class="badge completed">Completed</span>
+        <span class="project-date">June 2026</span>
+      </div>
+    </div>
 
     <div class="page-title">Compute Tier 1 - Microcontroller</div>
     <hr class="divider" />

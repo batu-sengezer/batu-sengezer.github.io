@@ -247,12 +247,24 @@
       margin-bottom: 20px;
     }
 
+    .project-group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 18px;
+    }
+
     .project-group-label {
       font-family: "Roboto Slab", serif;
       font-weight: 600;
       font-size: 1.4rem;
       color: var(--text);
-      margin-bottom: 18px;
+    }
+
+    .project-group-date {
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 500;
     }
 
     .project-group-desc {
@@ -329,11 +341,23 @@
       line-height: 1.65;
     }
 
+    .project-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+    }
+
     .project-cta {
       font-size: 0.85rem;
       color: #0d6efd;
-      margin-top: 12px;
       font-weight: 500;
+    }
+
+    .project-date {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 400;
     }
 
     .project:hover .project-cta {
@@ -402,7 +426,10 @@
     </p>
 
     <div class="project-group">
-      <div class="project-group-label">Edge AI Across the Compute Spectrum</div>
+      <div class="project-group-header">
+        <div class="project-group-label">Edge AI Across the Compute Spectrum</div>
+        <div class="project-group-date">Summer 2026</div>
+      </div>
       <p class="project-group-desc">
         The three tiers below are not independent projects, rather they form a single effort to deploy
         and measure the same machine-learning workload across the full hardware compute spectrum,
@@ -422,7 +449,10 @@
           with inference timing measured at cycle-level accuracy to establish real-time guarantees
           on the most resource-constrained tier of the spectrum.
         </p>
-        <div class="project-cta">Click to see project details &gt;&gt;</div>
+        <div class="project-bottom">
+          <div class="project-cta">Click to see project details &gt;&gt;</div>
+          <div class="project-date">June 2026</div>
+        </div>
       </a>
 
       <a class="project" href="tier2.html">
@@ -436,7 +466,10 @@
           at the edge, examining the trade-off between throughput and latency under real power
           and thermal constraints.
         </p>
-        <div class="project-cta">Click to see project details &gt;&gt;</div>
+        <div class="project-bottom">
+          <div class="project-cta">Click to see project details &gt;&gt;</div>
+          <div class="project-date">July 2026</div>
+        </div>
       </a>
 
       <a class="project" href="tier3.html">
@@ -451,12 +484,29 @@
           reference point to establish the upper bound of the spectrum against which the constrained
           tiers are measured.
         </p>
-        <div class="project-cta">Click to see project details &gt;&gt;</div>
+        <div class="project-bottom">
+          <div class="project-cta">Click to see project details &gt;&gt;</div>
+          <div class="project-date">August 2026</div>
+        </div>
       </a>
     </div>
 
     <div class="project-group">
       <div class="project-group-label">Undergraduate Projects</div>
+
+      <a class="project" href="servicekit.html">
+        <div class="project-top">
+          <div class="project-title">Undergraduate Capstone Project: Portable Diagnostic System for Arçelik Refrigerators (Service Kit)</div>
+          <span class="badge completed">Completed</span>
+        </div>
+        <p class="project-desc">
+          A group project to design a portable kit that detects and analyzes malfunctions in Arçelik refrigerators on the field, featuring on-the-field firmware updates via cloud, aiming to decrease repair time and maintenance expenses.
+        </p>
+        <div class="project-bottom">
+          <div class="project-cta">Click to see project details &gt;&gt;</div>
+          <div class="project-date">2020-2021</div>
+        </div>
+      </a>
 
       <a class="project" href="fpga.html">
         <div class="project-top">
@@ -466,7 +516,10 @@
         <p class="project-desc">
           A small FPGA controlled conveyor system for storing and distributing cargo packages, built on a Basys 3 board with ultrasonic sensors and DC motors.
         </p>
-        <div class="project-cta">Click to see project details &gt;&gt;</div>
+        <div class="project-bottom">
+          <div class="project-cta">Click to see project details &gt;&gt;</div>
+          <div class="project-date">Fall 2018</div>
+        </div>
       </a>
     </div>
 
