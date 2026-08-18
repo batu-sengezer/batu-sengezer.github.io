@@ -1,58 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Compute Tier 3 — Batu Şengezer</title>
+  <title>Compute Tier 3 &mdash; Edge AI on the Apple M5 Pro &mdash; Batu Şengezer</title>
+  <meta name="description"
+    content="Benchmarking the same neural network across the CPU, GPU, and Neural Engine of an Apple M5 Pro, with a cross-tier comparison against an STM32F407 microcontroller and an NVIDIA Jetson Orin Nano." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,300&family=Roboto+Slab:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --text: #212529; --muted: #6c757d; --border: #dee2e6; }
-    html { font-size: 16px; }
-    body { font-family: "Roboto", sans-serif; font-weight: 300; color: var(--text); background: #f8f9fa; line-height: 1.7; min-height: 100vh; display: flex; flex-direction: column; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --text: #212529;
+      --muted: #6c757d;
+      --border: #dee2e6;
+      --accent: #0d6efd;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Roboto", sans-serif;
+      font-weight: 300;
+      color: var(--text);
+      background: #f8f9fa;
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
 
     /* NAV BAR */
-    .navbar { position: sticky; top: 0; z-index: 60; background: #fff; border-bottom: 1px solid var(--border); }
-    .navbar-inner { max-width: 1140px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .navbar-name { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.2rem; letter-spacing: 0.01em; color: var(--text); text-decoration: none; flex-shrink: 0; }
-    .navbar-links { display: none; }
-    @media (min-width: 769px) {
-      .navbar-links { display: flex; flex: 1; justify-content: flex-end; gap: 32px; align-items: center; margin-left: 48px; }
-      .navbar-links a { font-family: "Roboto", sans-serif; font-weight: 400; font-size: 0.92rem; color: var(--text); text-decoration: none; padding: 8px 10px; border-radius: 6px; transition: background .15s, color .15s; }
-      .navbar-links a:hover { background: #f1f3f5; }
-      .menu-btn { display: none !important; }
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      width: 100%;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
     }
-    .menu-btn { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow .2s; flex-shrink: 0; }
-    .menu-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .menu-btn span { position: relative; width: 18px; height: 2px; background: var(--text); transition: background .2s; }
-    .menu-btn span::before, .menu-btn span::after { content: ""; position: absolute; left: 0; width: 18px; height: 2px; background: var(--text); transition: transform .25s ease; }
-    .menu-btn span::before { top: -6px; }
-    .menu-btn span::after  { top: 6px; }
-    .menu-open .menu-btn span { background: transparent; }
-    .menu-open .menu-btn span::before { transform: translateY(6px) rotate(45deg); }
-    .menu-open .menu-btn span::after  { transform: translateY(-6px) rotate(-45deg); }
-    .menu-overlay { position: fixed; top: 72px; right: 20px; z-index: 55; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; padding: 8px; min-width: 180px; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: opacity .18s ease, transform .18s ease, visibility .18s ease; }
-    .menu-open .menu-overlay { opacity: 1; visibility: visible; transform: translateY(0); }
-    .menu-overlay a { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1rem; color: var(--text); text-decoration: none; padding: 10px 14px; border-radius: 6px; transition: background .15s; }
-    .menu-overlay a:hover { background: #f1f3f5; }
 
-    .container { max-width: 1140px; margin: 0 auto; padding: 60px 24px; }
-    .article-top-nav { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
-    .breadcrumb { font-size: 0.85rem; color: var(--muted); margin-bottom: 0; }
-    .breadcrumb a { color: var(--muted); text-decoration: none; }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .project-status { display: flex; align-items: center; gap: 12px; }
-    .badge { font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; white-space: nowrap; background: #eef1f4; color: #5a6570; border: 1px solid #d5dbe1; }
-    .badge.completed { background: #d4edda; color: #155724; }
-    .badge.progress { background: #fff3cd; color: #856404; }
-    .project-date { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
-    .page-title { font-family: "Roboto Slab", serif; font-weight: 600; font-size: 1.8rem; margin-bottom: 16px; color: var(--muted); text-align: center; }
-    .placeholder-text { font-size: 1rem; color: var(--muted); }
+    .navbar-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar-name {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .navbar-links {
+      display: none;
+    }
+
+    @media (min-width: 769px) {
+      .navbar-links {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 32px;
+        align-items: center;
+        margin-left: 48px;
+      }
+
+      .navbar-links a {
+        font-family: "Roboto", sans-serif;
+        font-weight: 400;
+        font-size: 0.92rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 8px 10px;
+        border-radius: 6px;
+        transition: background .15s, color .15s;
+      }
+
+      .navbar-links a:hover {
+        background: #f1f3f5;
+      }
+
+      .menu-btn {
+        display: none !important;
+      }
+    }
+
+    .menu-btn {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: box-shadow .2s;
+      flex-shrink: 0;
+    }
+
+    .menu-btn:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-btn span {
+      position: relative;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: background .2s;
+    }
+
+    .menu-btn span::before,
+    .menu-btn span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      transition: transform .25s ease;
+    }
+
+    .menu-btn span::before {
+      top: -6px;
+    }
+
+    .menu-btn span::after {
+      top: 6px;
+    }
+
+    .menu-open .menu-btn span {
+      background: transparent;
+    }
+
+    .menu-open .menu-btn span::before {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-open .menu-btn span::after {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .menu-overlay {
+      position: fixed;
+      top: 72px;
+      right: 20px;
+      z-index: 55;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      min-width: 180px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    }
+
+    .menu-open .menu-overlay {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .menu-overlay a {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+
+    .menu-overlay a:hover {
+      background: #f1f3f5;
+    }
+
+    /* ARTICLE */
+    .article {
+      max-width: 1140px;
+      width: 100%;
+      min-width: 0;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    .article-top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+    }
+
+    .breadcrumb {
+      font-size: 13.6px;
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .article .breadcrumb a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .article .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    .project-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      background: #eef1f4;
+      color: #5a6570;
+      border: 1px solid #d5dbe1;
+    }
+
+    .badge.completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .badge.progress {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .project-date {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .page-title {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .article h1 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.75rem;
+      line-height: 1.28;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+
+    .lede {
+      font-size: 0.98rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    .article h2 {
+      font-family: "Roboto Slab", serif;
+      font-weight: 600;
+      font-size: 1.18rem;
+      margin: 20px 0 14px;
+      padding-top: 8px;
+    }
+
+    .article p {
+      margin-bottom: 16px;
+      text-align: justify;
+    }
+
+    .article a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .article a:hover {
+      text-decoration: underline;
+    }
+
+    .article strong {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .article em {
+      font-style: italic;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    /* highlight callout */
+    .headline-result {
+      background: #f0f7ff;
+      border: 1px solid #cce3fd;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #084298;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+      text-align: justify;
+    }
+
+    .headline-result-title {
+      font-family: "Roboto Slab", serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #052c65;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .headline-result strong {
+      color: #052c65;
+      font-weight: 600;
+    }
+
+    /* limitations note */
+    .limitations-note {
+      background: #fff8ec;
+      border: 1px solid #f5e0b3;
+      border-left: 4px solid #b7791f;
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: #5c4813;
+    }
+
+    .limitations-note-title {
+      font-family: "Roboto Slab", serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #5c4813;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .limitations-note strong {
+      color: #4a3a0f;
+      font-weight: 600;
+    }
+
+    /* video */
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      height: 0;
+      margin: 8px 0 8px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0 22px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      padding: 11px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 500;
+      font-family: "Roboto Slab", serif;
+      background: #f1f3f5;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td.num,
+    th.num {
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    /* bullet lists */
+    .article ul {
+      margin: 0 0 18px 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .article ul li {
+      position: relative;
+      padding-left: 22px;
+      margin-bottom: 10px;
+    }
+
+    .article ul li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 11px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text);
+    }
+
+    .article a.repo-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: #181717;
+      color: #fff !important;
+      font-size: 0.9rem;
+      padding: 11px 20px;
+      border-radius: 7px;
+      text-decoration: none;
+      margin-top: 8px;
+      transition: opacity .18s;
+    }
+
+    .article a.repo-cta:hover {
+      opacity: 0.88;
+      text-decoration: none;
+    }
+
+    .article a.repo-cta svg {
+      width: 18px;
+      height: 18px;
+      fill: #fff;
+    }
+
+    .closing {
+      font-style: italic;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+    }
 
     footer {
       margin-top: auto;
+      width: 100%;
       border-top: 1px solid var(--border);
       background: #fff;
       padding: 24px;
@@ -60,69 +517,651 @@
       font-size: 13.5px;
       color: var(--muted);
     }
-    @media (max-width: 720px) { .navbar-inner { padding: 0 16px; } }
+
+    @media (max-width: 600px) {
+      .article h1 {
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .navbar-inner {
+        padding: 0 16px;
+      }
+    }
   </style>
 </head>
+
 <body>
-
-<!-- NAV BAR -->
-<header class="navbar">
-  <div class="navbar-inner">
-    <a class="navbar-name" href="../index.html">Batu Şengezer</a>
-
-    <!-- Desktop inline links -->
-    <nav class="navbar-links" aria-label="Main menu">
-      <a href="../index.html">Home</a>
-      <a href="../publications/index.html">Research &amp; Publications</a>
-      <a href="index.html">Projects</a>
-      <a href="../resume/index.html">Resume</a>
-    </nav>
-
-    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
-      <span></span>
-    </button>
-  </div>
-</header>
-
-<!-- MENU OVERLAY (mobile) -->
-<nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
-  <a href="../index.html">Home</a>
-  <a href="../publications/index.html">Research &amp; Publications</a>
-  <a href="index.html">Projects</a>
-  <a href="../resume/index.html">Resume</a>
-</nav>
-
-<div class="container">
-  <div class="article-top-nav">
-    <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
-    <div class="project-status">
-      <span class="badge progress">In progress</span>
-      <span class="project-date">August 2026</span>
+  <!-- NAV BAR -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a class="navbar-name" href="../index.html">Batu Şengezer</a>
+      <!-- Desktop inline links -->
+      <nav class="navbar-links" aria-label="Main menu">
+        <a href="../index.html">Home</a>
+        <a href="../publications/index.html">Research &amp; Publications</a>
+        <a href="index.html">Projects</a>
+        <a href="../resume/index.html">Resume</a>
+      </nav>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+      </button>
     </div>
-  </div>
-  <h1 class="page-title">Compute Tier 3 — General-Purpose Computer</h1>
-  <p class="placeholder-text">Apple silicon · full-OS reference benchmark — write-up coming soon.</p>
-</div>
+  </header>
 
-<footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 11.07.2026</footer>
+  <!-- MENU OVERLAY (mobile) -->
+  <nav class="menu-overlay" id="menuOverlay" aria-label="Mobile menu">
+    <a href="../index.html">Home</a>
+    <a href="../publications/index.html">Research &amp; Publications</a>
+    <a href="index.html">Projects</a>
+    <a href="../resume/index.html">Resume</a>
+  </nav>
 
-<script>
-  (function () {
-    var btn = document.getElementById('menuBtn');
-    var body = document.body;
-    btn.addEventListener('click', function () {
-      var open = body.classList.toggle('menu-open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && body.classList.contains('menu-open')) {
-        body.classList.remove('menu-open');
-        btn.setAttribute('aria-expanded', 'false');
-        btn.setAttribute('aria-label', 'Open menu');
-      }
-    });
-  })();
-</script>
+  <article class="article">
+    <div class="article-top-nav">
+      <div class="breadcrumb"><a href="index.html">← Back to Projects</a></div>
+      <div class="project-status">
+        <span class="badge completed">Completed</span>
+        <span class="project-date">August 2026</span>
+      </div>
+    </div>
+
+    <div class="page-title">Compute Tier 3 - General-Purpose Computer</div>
+    <hr class="divider" />
+
+    <h1>CPU vs GPU vs Neural Engine on Apple M5 Pro (Edge AI Across Compute Spectrum)</h1>
+    <p class="lede">Three compute units on one die, and a workload too small for any of them, closing a three-tier
+      spectrum with a cross-tier comparison.</p>
+
+    <hr class="divider" />
+
+    <p style="background: #f1f3f5; padding: 16px 20px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 24px;">
+      <em>This page details <strong>Tier 3</strong> of a larger project named "Edge AI Across the Compute Spectrum
+        Project" where I deploy and measure the same machine-learning workload across the full hardware compute
+        spectrum, from a Microcontroller, to an Embedded GPU, to a General-Purpose Computer. Alongside this Tier 3
+        (General-Purpose Computer) implementation, the project also includes <a href="tier1.html">Tier 1 (MCU)</a> and
+        <a href="tier2.html">Tier 2 (Embedded GPU)</a>. This page also carries the cross-tier comparison that closes
+        the series.</em>
+    </p>
+
+    <p>This tier introduces a third processor to the comparison. The microcontroller in Tier 1 offers a single CPU,
+      and the embedded GPU board in Tier 2 pairs a CPU with a GPU. This chip pairs a CPU and a GPU with a dedicated
+      neural accelerator, all addressing the same pool of memory. The question this tier asks is narrower than the
+      two before it: when a platform offers several kinds of accelerator, does a small model benefit from any of
+      them, and if not, how much work does a single call have to carry before each one begins to pay off? The work
+      on this machine is divided into six sections.</p>
+
+    <p><strong>Section one</strong> moves the model onto the platform. The classifier was trained in Keras, but
+      reaching the Apple GPU requires PyTorch, so the weights had to be ported and the port had to be verified rather
+      than assumed. Nothing measured afterwards means anything if the network is not the same network.</p>
+
+    <p><strong>Section two</strong> compares the CPU against the GPU at one sample per call, which is the batch size
+      this application uses in deployment. Human activity recognition produces one feature vector per sampling window,
+      so a single sample is the realistic case rather than a conservative one.</p>
+
+    <p><strong>Section three</strong> increases the batch size until the GPU overtakes the CPU. Section two
+      establishes that the GPU loses without establishing why, and two explanations remain open at that point. Either
+      the GPU suits this network badly, or a single call carries too little work to justify dispatching it. The two
+      behave differently as the calls grow, which is what makes them separable.</p>
+
+    <p><strong>Section four</strong> addresses the Neural Engine, the one unit on this chip built specifically for
+      inference. It cannot be reached from PyTorch, only through Core ML, which does not accept instructions about
+      which processor to use so much as permissions, leaving the final decision to its own scheduler.</p>
+
+    <p><strong>Section five</strong> measures power draw on both execution paths. This machine is not power
+      constrained in the way the two smaller platforms are, but the measurement serves a second purpose here, since
+      the power rails report each compute unit separately and can confirm what the timing data alone cannot.</p>
+
+    <p><strong>Section six</strong> places all three tiers side by side, comparing latency, throughput, power, and
+      energy efficiency across a microcontroller, an embedded GPU board, and a laptop-class chip running the same
+      classifier.</p>
+
+    <div class="headline-result">
+      <div class="headline-result-title">The Results</div>
+      <strong>
+        In section one, the ported model matched the original to a maximum output difference of zero. In section two,
+        the GPU was 6.5 times slower than the CPU at one sample per call. In section three, the same GPU overtook the
+        CPU at batch 512 and reached 2.31 times by 1024, identifying the workload rather than the hardware as the
+        constraint. In section four, Core ML never engaged the Neural Engine at any setting, confirmed independently
+        by a power rail that read zero throughout. In section five, the CPU accounted for roughly 97 percent of power
+        draw during nominally GPU work. In section six, the M5 Pro proved more energy efficient than both smaller
+        platforms, while the microcontroller retained the absolute power advantage that gates deployment on a battery.
+      </strong>
+    </div>
+
+    <p>The full video walkthrough is below, followed by a written summary. The complete project is available on my <a
+        href="https://github.com/batu-sengezer/MacBook-m5pro-realtime-ai" target="_blank" rel="noopener">GitHub</a>.
+    </p>
+
+    <hr class="divider" />
+
+    <h2>Video Walkthrough</h2>
+    <div class="video-container">
+      <iframe src="https://www.youtube.com/embed/EX4qkCdlaEM"
+        title="Edge AI on the Apple M5 Pro: CPU, GPU, and a Neural Engine That Never Engaged"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+    </div>
+
+    <hr class="divider" />
+
+    <h2>The Hardware</h2>
+    <p>The target is a <strong>MacBook Pro</strong> carrying the <strong>Apple M5 Pro</strong>, model identifier
+      Mac17,8. Like the Jetson in Tier 2, it is a system-on-chip with a unified memory architecture, in which the
+      processors sit on the same die and address the same physical memory rather than each holding a private space
+      connected by a discrete link. Unlike the Jetson, it carries a third processor.</p>
+
+    <p>The CPU has <strong>18 cores</strong>, six of what Apple calls super cores and twelve performance cores, with
+      <strong>24 GB of unified memory</strong> shared across every compute unit. The GPU is reached through
+      <strong>Metal Performance Shaders</strong>, Apple's GPU compute framework, and the <strong>Apple Neural
+        Engine</strong> through Core ML. The machine runs macOS Tahoe 26.5.1, with Python 3.12 on arm64, PyTorch
+      2.12.1, coremltools 9.0, and TensorFlow 2.21.0.</p>
+
+    <p>Unified memory removes the explicit host-to-device copy that consumed roughly a third of the end-to-end path in
+      Tier 2. It does not remove the cost of dispatching work, and it means the CPU stays involved in anything the GPU
+      runs, which becomes the subject of section five.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 1: Porting the Model and Verifying It</h2>
+    <p>The model is the classifier carried through the entire series, taking 561 features derived from accelerometer
+      and gyroscope data and predicting one of six activity classes through three fully connected layers of 38,246
+      parameters. It was trained in Keras, quantized to INT8 for the microcontroller in Tier 1, and exported to ONNX
+      for TensorRT in Tier 2.</p>
+
+    <p>Neither of those paths reaches the Apple GPU. PyTorch's Metal Performance Shaders backend is the supported
+      route to that hardware, so an identical architecture was constructed in PyTorch and the weights transferred
+      layer by layer, transposing each weight matrix because Keras and PyTorch adopt opposite conventions for the
+      orientation of dense layer weights.</p>
+
+    <p>A weight transfer of this kind either works completely or fails in ways that are easy to miss, so it was
+      checked rather than assumed. The same input vector was passed through both models and the outputs compared
+      element by element.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th class="num">Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Layers transferred</td>
+            <td class="num">3</td>
+          </tr>
+          <tr>
+            <td>Activations confirmed from Keras config</td>
+            <td class="num">ReLU, ReLU, softmax</td>
+          </tr>
+          <tr>
+            <td><strong>Maximum elementwise output difference</strong></td>
+            <td class="num"><strong>0.000000</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The network benchmarked in the sections that follow is numerically the same network deployed in Tiers 1 and 2,
+      not an approximation of it or a retrained equivalent. That is the prerequisite the entire cross-tier comparison
+      rests on.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 2: CPU Against GPU at One Sample Per Call</h2>
+    <p>Each configuration was measured over 1,000 timed calls preceded by 50 warmup calls, timed with
+      <code>perf_counter</code>. The GPU measurements required one additional precaution. Metal dispatch is
+      asynchronous, meaning the call returns before the GPU has finished, so each GPU timing is followed by an
+      explicit synchronize before the timer stops. Without it, the measurement reports how long it took to queue the
+      work rather than how long it took to complete.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Backend</th>
+            <th class="num">Mean latency</th>
+            <th class="num">Relative to CPU</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PyTorch, CPU</td>
+            <td class="num">0.0114 ms</td>
+            <td class="num">baseline</td>
+          </tr>
+          <tr>
+            <td>PyTorch, GPU via Metal Performance Shaders</td>
+            <td class="num">0.0740 ms</td>
+            <td class="num"><strong>6.5× slower</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The GPU does not merely fail to help. It loses outright, by a wide margin. The explanation is dispatch
+      overhead. Before the GPU performs any arithmetic, the CPU must encode the command, submit it to a queue, and
+      synchronize on the result. <strong>This forward pass is three matrix-vector products totalling 38,144
+        multiply-accumulate operations</strong>, which a single CPU core completes in a few microseconds. The fixed
+      cost of engaging the GPU exceeds the cost of the computation being dispatched.</p>
+
+    <p>This reproduces the Tier 2 finding on unrelated hardware through an unrelated toolchain, where TensorRT on the
+      Jetson showed no measurable GPU advantage on the same model. Two vendors' accelerators, reached through two
+      different software stacks, independently reach the same conclusion about this workload.</p>
+
+    <p>One point is worth stating about how the parallelism was obtained, since neither backend was written by hand.
+      On the CPU, PyTorch distributes the layers across cores through its ATen backend, which is OpenMP backed,
+      selecting thread count and placement itself. On the GPU, moving the tensors to the Metal device delegates kernel
+      selection and thread group sizing to the framework. This is the opposite of the approach in Tier 2 section two,
+      where the CUDA kernels were written directly, and it means these figures characterize the framework's default
+      behaviour on this hardware rather than a parallel implementation designed for it.</p>
+
+    <p>As in Tier 2, this is a result rather than a failure, and it leaves the same question open. Either this GPU is
+      poorly suited to this network, or a single sample is too little work to justify dispatching.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 3: Batch Size and the Throughput Crossover</h2>
+    <p>Those two explanations behave differently as work per call increases. A structural mismatch would not improve
+      with scale. Dispatch overhead would, because a larger batch spreads that fixed cost across more samples. Batch
+      size here means the number of input samples processed in a single call, and the sweep ran from 1 to 1024 with
+      200 timed calls at each point on both devices.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="num">Batch</th>
+            <th class="num">CPU throughput</th>
+            <th class="num">GPU throughput</th>
+            <th class="num">GPU relative to CPU</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">1</td>
+            <td class="num">88,623 inf/s</td>
+            <td class="num">12,760 inf/s</td>
+            <td class="num">0.14×</td>
+          </tr>
+          <tr>
+            <td class="num">8</td>
+            <td class="num">194,038 inf/s</td>
+            <td class="num">100,247 inf/s</td>
+            <td class="num">0.52×</td>
+          </tr>
+          <tr>
+            <td class="num">32</td>
+            <td class="num">757,609 inf/s</td>
+            <td class="num">399,915 inf/s</td>
+            <td class="num">0.53×</td>
+          </tr>
+          <tr>
+            <td class="num">128</td>
+            <td class="num">2,058,843 inf/s</td>
+            <td class="num">1,670,192 inf/s</td>
+            <td class="num">0.81×</td>
+          </tr>
+          <tr>
+            <td class="num"><strong>512</strong></td>
+            <td class="num">4,786,137 inf/s</td>
+            <td class="num">6,086,483 inf/s</td>
+            <td class="num"><strong>1.27×</strong></td>
+          </tr>
+          <tr>
+            <td class="num">1024</td>
+            <td class="num">5,604,063 inf/s</td>
+            <td class="num">12,968,969 inf/s</td>
+            <td class="num"><strong>2.31×</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The deficit narrows monotonically as the batch grows, crossing parity between 128 and 512. That rules out a
+      structural mismatch and confirms dispatch overhead as the constraint.</p>
+
+    <p>The behaviour after the crossover is more informative than the crossover itself. Between batch 512 and 1024,
+      <strong>CPU throughput increased by roughly 17 percent while GPU throughput increased by roughly 113
+        percent</strong>. The CPU is approaching saturation, with no further cores to bring to bear. The GPU is still
+      filling and had not reached its own limit at the largest batch tested. The figure of 2.31 times is therefore a
+      lower bound rather than a peak, and the sweep terminated because of the range selected rather than because the
+      hardware stopped improving.</p>
+
+    <p>One qualification belongs with that number. A batch of 1024 means 1024 sensor readings arriving simultaneously,
+      which a streaming workload does not produce. The measurement describes what the silicon is capable of rather
+      than what this application would request of it. Its value is in locating the boundary, so that a given
+      deployment can be evaluated against it.</p>
+
+    <p>Taken together, sections two and three give the central result of this tier. <strong>On identical hardware
+        running an identical model, the same GPU is 6.5 times slower at one sample per call and 2.31 times faster at
+        1024.</strong> Nothing about the hardware changed between those two measurements. Only the amount of work per
+      call did.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 4: Core ML and the Neural Engine</h2>
+    <p>The Neural Engine is the compute unit designed specifically for inference, and therefore the one most likely to
+      help. It is not reachable from PyTorch, so the model required conversion to Core ML.</p>
+
+    <p>Direct conversion from the Keras model was attempted first and failed twice, initially because coremltools
+      could not infer the source framework and then, once that was specified, because the installed Keras version
+      exposes a model object the converter does not recognize. The path that succeeded routes the model through
+      PyTorch and a traced graph before conversion, which is why the pipeline retains a PyTorch stage that would
+      otherwise appear redundant.</p>
+
+    <p>Core ML also does not behave the way the API initially suggests. It does not accept an instruction specifying
+      which compute unit to use. It accepts a permission, expressed as a compute unit setting, and its own scheduler
+      then decides what to use within whatever it has been allowed. Measuring the three settings therefore reports
+      what the scheduler chose, not what was requested.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Compute units permitted</th>
+            <th class="num">Mean latency</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CPU only</td>
+            <td class="num">0.0341 ms</td>
+          </tr>
+          <tr>
+            <td>CPU and GPU</td>
+            <td class="num">0.0337 ms</td>
+          </tr>
+          <tr>
+            <td>All units, including the Neural Engine</td>
+            <td class="num">0.0341 ms</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The three settings are indistinguishable. Permitting the GPU changed latency by roughly one percent and
+      permitting the Neural Engine by less than that, both inside run-to-run variation, which is consistent with the
+      scheduler having executed the model on the CPU in every case.</p>
+
+    <p>Latency alone cannot establish that, and this is where the measurement would ordinarily stop short. Identical
+      timings would also result if the Neural Engine had executed the model and happened to match CPU performance
+      exactly. The two hypotheses are indistinguishable from timing data.</p>
+
+    <p>The power measurement in the next section resolves it. <strong>Across every sample of every run, including the
+        runs in which the Neural Engine was explicitly permitted, its power rail reported zero milliwatts.</strong> A
+      compute unit drawing no power is not executing work. Two independent signals, latency and power draw, agree that
+      the accelerator was available and the scheduler declined to use it.</p>
+
+    <p>The most likely explanation is the one established in the previous two sections. The Neural Engine is designed
+      around large convolutional and transformer workloads, and engaging it carries fixed costs in model compilation
+      and dispatch that a three-layer dense network of 38,246 parameters does not repay. Apple's scheduler appears to
+      apply a cost model that reaches the same conclusion the GPU measurements reached independently.</p>
+
+    <p>These Core ML latencies also include the cost of crossing from Python into Core ML on every call, which
+      involves dictionary construction and array marshalling. All three figures sit near three times the PyTorch CPU
+      measurement for identical arithmetic, consistent with that overhead being a substantial share of the total at
+      this model scale. The ordering between the rows is meaningful, while the absolute values are an upper bound on
+      true inference cost.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 5: Power Draw</h2>
+    <p>Power was sampled with <code>powermetrics</code> at one second intervals, running concurrently with the
+      benchmark in a separate terminal. It reports the CPU, GPU, and Neural Engine rails separately, which is what
+      made the confirmation in the previous section possible.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>State</th>
+            <th class="num">CPU rail</th>
+            <th class="num">GPU rail</th>
+            <th class="num">Neural Engine rail</th>
+            <th class="num">Combined</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Idle</td>
+            <td class="num">285 mW</td>
+            <td class="num">14 mW</td>
+            <td class="num">0 mW</td>
+            <td class="num">298 mW</td>
+          </tr>
+          <tr>
+            <td>CPU execution</td>
+            <td class="num">2,459 mW</td>
+            <td class="num">26 mW</td>
+            <td class="num">0 mW</td>
+            <td class="num">2.49 W</td>
+          </tr>
+          <tr>
+            <td>GPU execution, batch 1024</td>
+            <td class="num">8,284 mW</td>
+            <td class="num">273 mW</td>
+            <td class="num">0 mW</td>
+            <td class="num">8.56 W</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The Neural Engine column reads zero in every state, which is the independent confirmation section four relies
+      on.</p>
+
+    <p>The distribution across the other two rails during GPU execution was not the expected result. The GPU rail rose
+      to 273 mW while the CPU rail rose to 8,284 mW, so <strong>the CPU accounted for roughly 97 percent of the power
+        drawn during work that is nominally executing on the GPU</strong>. On a unified memory architecture the CPU
+      does not go idle while the GPU computes. It encodes commands, submits them to the queue, synchronizes on
+      results, and manages memory throughout, and in a benchmark loop that submits calls back to back with no other
+      work in between, that overhead becomes the dominant power cost. An application performing other work between
+      inferences would not necessarily show this distribution.</p>
+
+    <p>Dividing throughput by combined power gives roughly 35,600 inferences per second per watt on the CPU at batch
+      size one, and roughly 1,515,000 on the GPU at batch 1024. These describe two different operating modes rather
+      than the same task measured twice.</p>
+
+    <hr class="divider" />
+
+    <h2 id="limitations">Limitations</h2>
+    <div class="limitations-note">
+      <div class="limitations-note-title">Measured means, not proven bounds</div>
+      <p>All latency figures are measured means on an unpinned, thermally uncontrolled macOS system, not proven
+        bounds, unlike the bare-metal timing in Tier 1 or the pinned clocks in Tier 2, so these figures carry more
+        uncertainty than either.</p>
+    </div>
+
+    <p><strong>Only mean latency is reported.</strong> Tiers 1 and 2 also reported the tail, standard deviation and
+      observed maximum, and the full percentile distribution respectively, which is where a real-time argument would
+      actually live. That is absent here.</p>
+
+    <p><strong>The Neural Engine result lacks a positive control.</strong> No accelerator-eligible model was run
+      through the same conversion pipeline, so a faulty dispatch configuration cannot be fully ruled out as the cause.
+      The agreement between the latency and power signals makes that unlikely, but the result remains strongly
+      supported rather than established.</p>
+
+    <p>The <strong>power figures average a one second sampling interval</strong> across thousands of inferences,
+      with phases attributed from timestamps rather than instrumentation, and the idle floor not subtracted. Inputs
+      were randomly generated rather than drawn from the UCI HAR test set, and the Keras-to-PyTorch port was verified
+      numerically, not against classification accuracy.</p>
+
+    <hr class="divider" />
+
+    <h2>Section 6: The Compute Spectrum</h2>
+    <p>This section places three tiers and one classifier side by side across three classes of hardware, spanning
+      four orders of magnitude in throughput. The comparison is between deployed configurations rather than identical
+      ones, and the notes following the table carry as much weight as the figures themselves.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th class="num">STM32F407<br />Tier 1</th>
+            <th class="num">Jetson Orin Nano<br />Tier 2</th>
+            <th class="num">M5 Pro CPU<br />Tier 3</th>
+            <th class="num">M5 Pro GPU<br />Tier 3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Single-sample latency</td>
+            <td class="num">0.787 ms</td>
+            <td class="num">0.045 ms</td>
+            <td class="num">0.0114 ms</td>
+            <td class="num">0.0740 ms</td>
+          </tr>
+          <tr>
+            <td>Peak throughput observed</td>
+            <td class="num">~1,270 inf/s</td>
+            <td class="num">~16,273 inf/s</td>
+            <td class="num">~88,600 inf/s</td>
+            <td class="num">~12,970,000 inf/s</td>
+          </tr>
+          <tr>
+            <td>Power during inference</td>
+            <td class="num">~132 mW <em>(est)</em></td>
+            <td class="num">6.9 W</td>
+            <td class="num">~2.5 W</td>
+            <td class="num">~8.6 W</td>
+          </tr>
+          <tr>
+            <td><strong>Energy efficiency</strong></td>
+            <td class="num"><strong>~9,600 inf/s/W</strong></td>
+            <td class="num"><strong>~2,360 inf/s/W</strong></td>
+            <td class="num"><strong>~36,000 inf/s/W</strong></td>
+            <td class="num"><strong>~1,516,000 inf/s/W</strong></td>
+          </tr>
+          <tr>
+            <td>Precision deployed</td>
+            <td class="num">INT8</td>
+            <td class="num">FP16 and FP32</td>
+            <td class="num">FP32</td>
+            <td class="num">FP32</td>
+          </tr>
+          <tr>
+            <td>Execution environment</td>
+            <td class="num">Bare metal, FreeRTOS</td>
+            <td class="num">Linux, clocks pinned</td>
+            <td class="num">macOS, not pinned</td>
+            <td class="num">macOS, not pinned</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Latency and throughput rank as expected, improving monotonically as the hardware grows. Energy efficiency does
+      not. <strong>The STM32 and the Jetson trade places between the two metrics</strong>, with the Jetson ahead on
+      raw throughput and the microcontroller ahead on inferences per watt. That reversal is the most interesting thing
+      in the table.</p>
+
+    <p>The Jetson draws 6.9 W to deliver throughput the M5 Pro CPU exceeds five times over at roughly a third of the
+      power, and it ranks last on efficiency of the four columns. This is not a deficiency of the board. Tier 2
+      measured the same Jetson reaching 266 times a single-threaded CPU baseline on a hand-written CUDA matrix
+      multiplication. The hardware is capable, and this model is too small to occupy it. A board drawing that much
+      power spends most of it staying ready rather than computing, and a workload of 38,144 operations never claims
+      what it is paying for.</p>
+
+    <p>The M5 Pro leads on efficiency as well as speed, which corrected an expectation held before measuring.
+      <strong>Its CPU delivers roughly 3.7 times more inferences per watt than the microcontroller, and its GPU at
+        large batch roughly 157 times more.</strong> Newer silicon, built on a more advanced manufacturing process,
+      performs more work per joule, and architectural simplicity does not compensate for that.</p>
+
+    <p>What the STM32 wins is absolute power. Approximately 132 mW against 2.5 W. <strong>That is a deployment gate
+        rather than a performance ranking.</strong> If a platform's power budget is 200 mW, the laptop chip is
+      unavailable regardless of how efficiently it converts watts into inferences. Efficiency becomes the deciding
+      metric only once the absolute draw is affordable at all, and for a battery-powered sensor node it frequently is
+      not.</p>
+
+    <div class="limitations-note">
+      <div class="limitations-note-title">On comparing these figures</div>
+      <p>The STM32 power figure is a datasheet estimate (238 µA/MHz in run mode from Flash, 168 MHz, 3.3 V), not a
+        measurement. The three tiers also measure power at different scopes: the microcontroller only, whole-board
+        input for the Jetson, and chip rails only for the M5 Pro. Precision differs too, INT8 on the microcontroller
+        against FP32 on Apple silicon, and each tier reports latency from its own toolchain. These ratios describe
+        deployed configurations, not hardware held to one common standard.</p>
+    </div>
+
+    <hr class="divider" />
+
+    <h2>Conclusions</h2>
+    <p>For this workload specifically, the answer is unambiguous. UCI HAR classifies a 2.56 second window with 50
+      percent overlap, so a deployed system requires roughly one inference per second. <strong>The STM32 delivers
+        1,270 per second, at 0.79 percent CPU utilisation, on approximately 132 mW.</strong> It exceeds the
+      requirement by more than three orders of magnitude on the smallest platform in the series. Nothing above the
+      microcontroller is justified, and the useful question is not which platform is fastest but how much of the
+      microcontroller remains available for everything else the device has to do. At 0.79 percent utilisation, nearly
+      all of it.</p>
+
+    <p>The general conclusion is the pattern that repeated on every platform tested. On the STM32 the classifier ran
+      at under one percent CPU utilisation. On the Jetson it showed no measurable GPU advantage and no benefit from
+      reduced precision. On the M5 Pro the GPU lost outright at batch size one and the Neural Engine never engaged at
+      all. <strong>Three platforms, three toolchains, three vendors, and the same answer each time.</strong></p>
+
+    <p>Accelerators pay off only when a single call carries enough arithmetic to cover the cost of dispatching it.
+      This classifier performs 38,144 multiply-accumulate operations per inference. MobileNetV2, which ran on the
+      Jetson GPU in Tier 2 without any timing instability, performs roughly three hundred million. The threshold sits
+      somewhere between those two figures and was not measured in this project. Below it, the CPU wins on every
+      platform tested and the specialized silicon sits idle.</p>
+
+    <p>Section three demonstrates the other route past that threshold. Aggregating enough small calls into a single
+      batch also clears it, which is why the M5 Pro GPU overtakes its own CPU at batch 512. That option is available
+      only to applications that can afford to wait while the samples accumulate, which a streaming sensor workload
+      cannot. A vision model processing many camera frames per second, or a batch job classifying a stored dataset
+      overnight, is the kind of workload that would actually justify the Jetson or the M5 Pro over a
+      microcontroller.</p>
+
+    <h2>Next Steps</h2>
+    <p>The clearest extension for this tier is a <strong>positive control for the Neural Engine</strong>, running a
+      model known to be accelerator-eligible through the same conversion pipeline, which is the single change that
+      would most strengthen the section four conclusion. Beyond that, a <strong>hand-written OpenMP implementation of
+        the forward pass</strong> would replace framework-managed CPU parallelism with an explicit thread
+      decomposition, producing the strong-scaling curve and parallel efficiency figures the framework path conceals,
+      and giving this tier the equivalent of the hand-written CUDA work in Tier 2. Percentile reporting and a
+      contention study matching the Tier 2 methodology would make interference sensitivity a cross-tier axis rather
+      than a single-platform observation.</p>
+
+    <hr class="divider" />
+
+    <p style="text-align:center;">The complete project including the benchmark scripts, conversion code, measurement
+      data, reproduction commands, and detailed documentation is available on GitHub.</p>
+
+    <div style="text-align:center;">
+      <a class="repo-cta" href="https://github.com/batu-sengezer/MacBook-m5pro-realtime-ai" target="_blank"
+        rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+        </svg>
+        View on GitHub
+      </a>
+    </div>
+  </article>
+
+  <footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 18.08.2026</footer>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('menuBtn');
+      var body = document.body;
+      btn.addEventListener('click', function () {
+        var open = body.classList.toggle('menu-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && body.classList.contains('menu-open')) {
+          body.classList.remove('menu-open');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Open menu');
+        }
+      });
+    })();
+  </script>
 </body>
+
 </html>
