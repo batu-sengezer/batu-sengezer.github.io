@@ -380,6 +380,7 @@
       font-size: 0.86rem;
       color: var(--muted);
       line-height: 1.55;
+      text-align: justify;
     }
 
 
@@ -438,6 +439,7 @@
       font-size: 0.9rem;
       color: var(--muted);
       line-height: 1.65;
+      text-align: justify;
     }
 
     /* PROJECT STYLES */
@@ -779,6 +781,7 @@
           <a class="section-viewall" href="publications/index.html">View all →</a>
         </div>
 
+        <div class="bg-label">Motivation</div>
         <p class="interests-lead">
           I like to work on machine learning systems deployed on real, resource-constrained hardware,
           where every design choice has a measurable cost in memory, latency, and power.
@@ -787,34 +790,60 @@
           safety-critical software engineering.
         </p>
 
+        <div class="bg-label">Research Interests</div>
         <div class="interest-grid">
           <div class="interest">
             <h3>Real-Time Embedded ML</h3>
-            <p>Deploying neural networks on microcontrollers with provable, cycle-accurate timing guarantees.</p>
+            <p>Designing and deploying machine learning models on resource-constrained embedded platforms with an
+              emphasis on <strong>deterministic, bounded, and predictable inference latency</strong> rather than
+              average-case performance alone.</p>
           </div>
           <div class="interest">
             <h3>Edge AI &amp; Acceleration</h3>
-            <p>Running inference on embedded GPUs and accelerators under real power and thermal limits.</p>
+            <p>Understanding when and how specialized hardware acceleration improves on-device AI, accounting for the
+              full system cost of <strong>computation, memory movement, communication, power, and accelerator
+                overhead</strong>.</p>
           </div>
           <div class="interest">
             <h3>Hardware–Software Co-Design</h3>
-            <p>Mapping computation onto the right hardware — from MCUs to FPGAs — for efficiency and determinism.</p>
+            <p>Jointly optimizing algorithms, models, and computing platforms from <strong>microcontrollers and embedded
+                processors to FPGAs and accelerators</strong> to achieve efficient and predictable execution under
+              hardware constraints.</p>
           </div>
           <div class="interest">
             <h3>Cyber-Physical &amp; Autonomous Systems</h3>
-            <p>Decentralized learning and coordination for constrained autonomous agents.</p>
+            <p>Developing intelligent computing systems that interact with the physical world while operating under
+              constraints in <strong>energy, communication, computation, and environmental uncertainty</strong>.</p>
           </div>
+          <div class="interest">
+            <h3>Real-Time Safety-Critical Systems</h3>
+            <p>Designing and analyzing computing systems in which <strong>timeliness and correctness are both
+                fundamental requirements</strong>, and where missed deadlines or incorrect decisions can have physical
+              consequences.</p>
+          </div>
+          <div class="interest">
+            <h3>High-Performance &amp; Parallel Computing</h3>
+            <p>Exploring <strong>parallel architectures, computation, and scalability</strong> as foundations for
+              accelerating machine learning and enabling real-time performance across edge and high-performance
+              computing platforms.</p>
+          </div>
+
+
         </div>
 
-
+        <div class="bg-label">Publications</div>
         <a class="pub" href="publications/index.html">
-          <div class="pub-top">
-            <div class="pub-title">Decentralized Learning for Coordination in Energy-Constrained Autonomous Agent Swarms
+          <div class="pub-top" style="margin-bottom: 4px;">
+            <div class="pub-title">Decentralized Learning for Coordination in Energy-Constrained Autonomous Agent
+              Swarms
             </div>
             <span class="badge progress">In progress</span>
           </div>
+          <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 10px;">
+            <span>— Research with Prof. Fehmi Tanrısever, Bilkent University Faculty of Business Administration</span>
+          </div>
           <p class="pub-desc">
-            Research on multi-agent reinforcement learning for coordinating swarms of autonomous
+            Research on multi-agent federated learning for coordinating swarms of autonomous
             agents operating under energy constraints, where agents communicate only when the
             expected benefit from communication justifies the energy cost. Work is ongoing, with a preprint planned
             once results are finalized.
@@ -906,7 +935,7 @@
     </main>
   </div>
 
-  <footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 29.08.2026</footer>
+  <footer>© 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 31.08.2026</footer>
 
   <script>
     // Menu toggle
