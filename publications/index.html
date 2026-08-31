@@ -369,18 +369,38 @@
 
     <div class="bg-label">Motivation</div>
     <p class="interests-lead">
-      I like to work on machine learning systems deployed on real, resource-constrained hardware,
-      where every design choice has a measurable cost in memory, latency, and power.
-      My academic goal is to pursue graduate research (MASc or PhD) at the intersection of
-      embedded systems and machine learning, building on a strong foundation in real-time,
-      safety-critical software engineering.
+      Artificial intelligence has advanced at an extraordinary pace, moving rapidly into our everyday lives. While
+      much of
+      today’s most capable AI relies on cloud infrastructure, I believe the next stage will increasingly bring
+      intelligence
+      closer to where data is generated. Privacy, latency, communication costs, reliability, and connectivity will
+      drive more AI computation toward edge devices, creating a need for compact and specialized models, including
+      small
+      language models and domain-specific deep-learning models, designed around the limits of their hardware. This
+      transformation is already emerging across industries, from defence and aerospace to industrial automation and
+      consumer electronics, enabling systems such as autonomous defence platforms, intelligent robots, and smart
+      appliances. <br><br>
+
+      I am particularly interested in machine learning systems deployed on real, resource-constrained hardware,
+      where
+      every design choice has a measurable cost in memory, latency, power, and computing resources. My academic goal
+      is
+      to pursue graduate research (MASc or PhD) at the intersection of embedded systems and machine learning,
+      building on my foundation in
+      real-time, safety-critical software engineering. The following research interests are closely related areas
+      toward
+      my goal of enabling <strong>real-time, safety-critical, high-performance applied ML/DL and Edge AI</strong> within
+      the resource
+      constraints of
+      embedded systems.
     </p>
 
     <div class="bg-label">Research Interests</div>
     <div class="interest-grid">
       <div class="interest">
         <h3>Real-Time Embedded ML</h3>
-        <p>Designing and deploying machine learning models on resource-constrained embedded platforms with an emphasis
+        <p>Designing and deploying <strong>applied ML/DL</strong> models on resource-constrained embedded platforms with
+          an emphasis
           on <strong>deterministic, bounded, and predictable inference latency</strong> rather than average-case
           performance alone.</p>
       </div>
@@ -392,9 +412,11 @@
       </div>
       <div class="interest">
         <h3>Hardware–Software Co-Design</h3>
-        <p>Jointly optimizing algorithms, models, and computing platforms—from <strong>microcontrollers and embedded
-            processors to FPGAs and accelerators</strong>—to achieve efficient and predictable execution under hardware
-          constraints.</p>
+        <p>Jointly optimizing <strong>applied ML/DL</strong> algorithms and computing hardware from
+          <strong>microcontrollers and embedded
+            processors to FPGAs and accelerators</strong> to achieve efficient and predictable execution under hardware
+          constraints.
+        </p>
       </div>
       <div class="interest">
         <h3>Cyber-Physical &amp; Autonomous Systems</h3>
@@ -438,24 +460,24 @@
     © 2026 Batu Şengezer &nbsp;·&nbsp; Last updated 31.08.2026
   </footer>
 
-    <script>
-      (function () {
-        var btn = document.getElementById('menuBtn');
-        var body = document.body;
-        btn.addEventListener('click', function () {
-          var open = body.classList.toggle('menu-open');
-          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-          btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-        });
-        document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape' && body.classList.contains('menu-open')) {
-            body.classList.remove('menu-open');
-            btn.setAttribute('aria-expanded', 'false');
-            btn.setAttribute('aria-label', 'Open menu');
-          }
-        });
-      })();
-    </script>
+  <script>
+    (function () {
+      var btn = document.getElementById('menuBtn');
+      var body = document.body;
+      btn.addEventListener('click', function () {
+        var open = body.classList.toggle('menu-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && body.classList.contains('menu-open')) {
+          body.classList.remove('menu-open');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Open menu');
+        }
+      });
+    })();
+  </script>
 </body>
 
 </html>

@@ -419,10 +419,10 @@
     <h1 class="page-title">Projects</h1>
 
     <p class="intro-text">
-      I like to work on machine learning systems deployed on real, resource-constrained hardware
-      where every design choice has a measurable cost in memory, latency, and power, and where
-      getting a model to run is only the first step toward understanding what it actually costs
-      to run it well.
+      I enjoy building and evaluating machine learning systems on real hardware, where every design choice has a
+      measurable cost in memory, latency, power, and computing resources. Getting a model to run is only the first step;
+      the real challenge is understanding its behavior under hardware constraints and making it efficient, predictable,
+      and reliable. The projects below explore these challenges through hands-on work in embedded systems and Edge AI.
     </p>
 
     <div class="project-group">
@@ -431,11 +431,22 @@
         <div class="project-group-date">Summer 2026</div>
       </div>
       <p class="project-group-desc">
-        The three tiers below are not independent projects, rather they form a single effort to deploy
-        and measure the same machine-learning workload across the full hardware compute spectrum,
-        from a Microcontroller, to an Embedded GPU, to a General-Purpose PC.
-        The project is organized into three compute tiers: Tier 1 (MCU), Tier 2 (Embedded GPU),
-        and Tier 3 (General-Purpose Computer/MacBook).
+        A personal three tier research project I completed in summer 2026, benchmarking a human activity recognition
+        (HAR) model I trained myself and deployed across the full spectrum of edge computing hardware. Rather than
+        optimizing for one platform, the goal was to characterize how the same trained model behaves differently on
+        different hardware tiers, using hand-written CUDA kernels, contention and interference studies, and power mode
+        analysis to separate what the hardware could do from what the model actually needed.
+
+        <br><br>Tier 1 (Microcontroller): STM32F407 bare metal microcontroller running FreeRTOS
+        <br>Tier 2 (Embedded GPU): NVIDIA Jetson Orin Nano GPU accelerated computer using TensorRT and CUDA
+        <br>Tier 3 (General-Purpose Computer): Apple MacBook M5 Pro, benchmarking CPU, GPU, and Neural Engine via Metal
+        Performance Shaders and Core ML
+
+        <br><br>Together, the three tiers show that faster hardware does not automatically mean faster inference. The
+        right
+        platform depends on model size, batch size, latency requirements, and system level bottlenecks such as data
+        transfer, contention, and power budget, which often dominate over raw compute throughput for small models.
+        Please see Tier 3 for cross-tier comparison of results.
       </p>
 
       <a class="project" href="tier1.html">
@@ -496,11 +507,14 @@
 
       <a class="project" href="servicekit.html">
         <div class="project-top">
-          <div class="project-title">Undergraduate Capstone Project: Portable Diagnostic System for Arçelik Refrigerators (Service Kit)</div>
+          <div class="project-title">Undergraduate Capstone Project: Portable Diagnostic System for Arçelik
+            Refrigerators (Service Kit)</div>
           <span class="badge completed">Completed</span>
         </div>
         <p class="project-desc">
-          A group project to design a portable kit that detects and analyzes malfunctions in Arçelik refrigerators on the field, featuring on-the-field firmware updates via cloud, aiming to decrease repair time and maintenance expenses.
+          A group project to design a portable kit that detects and analyzes malfunctions in Arçelik refrigerators on
+          the field, featuring on-the-field firmware updates via cloud, aiming to decrease repair time and maintenance
+          expenses.
         </p>
         <div class="project-bottom">
           <div class="project-cta">Click to see project details &gt;&gt;</div>
@@ -514,7 +528,8 @@
           <span class="badge completed">Completed</span>
         </div>
         <p class="project-desc">
-          A small FPGA controlled conveyor system for storing and distributing cargo packages, built on a Basys 3 board with ultrasonic sensors and DC motors.
+          A small FPGA controlled conveyor system for storing and distributing cargo packages, built on a Basys 3 board
+          with ultrasonic sensors and DC motors.
         </p>
         <div class="project-bottom">
           <div class="project-cta">Click to see project details &gt;&gt;</div>
